@@ -32,6 +32,8 @@ export default function Login() {
       }
 
       toast.success('Login berhasil!')
+
+      // Redirect ke dashboard
       router.push('/dashboard')
       router.refresh()
     } catch (error: any) {
@@ -56,6 +58,7 @@ export default function Login() {
               width={150} 
               height={150} 
               alt="Logo" 
+              priority 
               className="mb-4 rounded-full border-4 border-yellow-400 shadow-lg"
             />
             <h1 className="mb-2 text-2xl font-bold">Warung Alinaldi</h1>
