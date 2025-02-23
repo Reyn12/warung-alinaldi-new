@@ -16,7 +16,7 @@ export default function Login() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-
+  
     try {
       const res = await fetch('/api/auth', {
         method: 'POST',
@@ -25,17 +25,18 @@ export default function Login() {
         },
         body: JSON.stringify({ username, password })
       })
-
+  
       if (!res.ok) {
         const error = await res.json()
         throw new Error(error.error)
       }
-
+  
+      // Tunggu toast selesai
       toast.success('Login berhasil!')
-
-      // Redirect ke dashboard
+      await new Promise(resolve => setTimeout(resolve, 1000))
+  
+      // Baru redirect
       router.push('/dashboard')
-      router.refresh()
     } catch (error: any) {
       toast.error(error.message)
     } finally {

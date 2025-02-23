@@ -1,16 +1,21 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
+
+
+// Initialize Supabase client
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
 
 export async function POST(request: Request) {
   try {
     const { username, password } = await request.json()
-    const response = new NextResponse()
-    const supabase = createRouteHandlerClient({ cookies: () => cookies() })
 
+    // Query user dari Supabase
     const { data: user, error } = await supabase
       .from('users')
-      .select()
+      .select('*')
       .eq('username', username)
       .eq('password', password)
       .single()
@@ -22,11 +27,26 @@ export async function POST(request: Request) {
       )
     }
 
-    response.cookies.set('user-session', JSON.stringify(user), {
+    // Create session with user data
+    const session = {
+      user: {
+        id: user.id,
+        username: user.username,
+        role: user.role
+      }
+    }
+
+    const response = NextResponse.json({ 
+      success: true,
+      user: session.user
+    })
+
+    // Set our own session cookie
+    response.cookies.set('user-session', JSON.stringify(session), {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 60 * 60 * 24
+      maxAge: 60 * 60 * 24 // 1 day
     })
 
     return response
@@ -40,9 +60,8 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE() {
-  const response = new NextResponse()
+  const response = NextResponse.json({ success: true })
   response.cookies.delete('user-session')
-  
   return response
 }
 
