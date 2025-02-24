@@ -68,7 +68,7 @@ export default function ProductsPage() {
     }, [])
 
     // Filter produk berdasarkan pencarian
-    const filteredProducts = products.filter((product) =>
+    const filteredProducts = products.filter(product =>
         product.nama.toLowerCase().includes(searchQuery.toLowerCase())
     )
 
