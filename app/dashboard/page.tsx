@@ -1,8 +1,10 @@
+// page.tsx
 'use client'
 
 import { useState, useEffect } from 'react'
-import { FaSearch, FaBarcode, FaShoppingCart, FaTrash } from 'react-icons/fa'
+import { FaSearch, FaBarcode } from 'react-icons/fa'
 import dynamic from 'next/dynamic'
+import Cart from './components/cart/Cart'
 
 // Interface untuk tipe produk
 interface Product {
@@ -26,22 +28,37 @@ const Dashboard = () => {
     const [searchQuery, setSearchQuery] = useState('')
     const [cart, setCart] = useState<CartItem[]>([])
     const [isClient, setIsClient] = useState(false)
+    const [products, setProducts] = useState<Product[]>([])
 
     useEffect(() => {
         setIsClient(true)
     }, [])
 
-    // Contoh kategori (nanti bisa diambil dari API)
     const categories = ['Semua Produk', 'Favorit', 'Baru', 'Makanan', 'Minuman', 'Snack']
 
-    const [products, setProducts] = useState<Product[]>([])
+    const addToCart = (product: Product) => {
+        setCart(currentCart => {
+            const existingItem = currentCart.find(item => item.id === product.id)
+            if (existingItem) {
+                return currentCart.map(item =>
+                    item.id === product.id
+                        ? { ...item, quantity: item.quantity + 1 }
+                        : item
+                )
+            }
+            return [...currentCart, { ...product, quantity: 1 }]
+        })
+    }
+
+    const removeFromCart = (id: number) => {
+        setCart(currentCart => currentCart.filter(item => item.id !== id))
+    }
 
     useEffect(() => {
         const fetchProducts = async () => {
             try {
                 const response = await fetch('/api/dashboard/product')
                 const result = await response.json()
-                
                 if (result.status === 'success') {
                     setProducts(result.data)
                 } else {
@@ -51,7 +68,6 @@ const Dashboard = () => {
                 console.error('Error fetching products:', err)
             }
         }
-    
         fetchProducts()
     }, [])
 
@@ -63,7 +79,6 @@ const Dashboard = () => {
         <div className="flex gap-4 p-4">
             {/* Kolom Kiri */}
             <div className="w-2/3">
-                {/* Search Bar & Barcode */}
                 <div className="flex gap-4 mb-4">
                     <div className="flex-1 relative">
                         <input
@@ -80,7 +95,6 @@ const Dashboard = () => {
                     </button>
                 </div>
 
-                {/* Kategori */}
                 <div className="flex gap-2 mb-6 overflow-x-auto custom-scrollbar pb-2">
                     {categories.map((category) => (
                         <button
@@ -92,7 +106,6 @@ const Dashboard = () => {
                     ))}
                 </div>
 
-                {/* Grid Produk */}
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                     {products.map((product) => (
                         <div key={product.id} className="bg-white rounded-lg shadow p-3">
@@ -102,61 +115,20 @@ const Dashboard = () => {
                                 className="w-full h-40 object-cover rounded-lg mb-2"
                             />
                             <h3 className="font-semibold">{product.nama}</h3>
-                            <p className="text-blue-600">Rp {product.harga.toLocaleString()}</p>
+                            <p className="text-blue-600 mb-2">Rp {product.harga.toLocaleString()}</p>
+                            <button
+                                onClick={() => addToCart(product)}
+                                className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition-colors"
+                            >
+                                Tambah ke Keranjang
+                            </button>
                         </div>
                     ))}
                 </div>
             </div>
 
-            {/* Kolom Kanan - Cart */}
-            <div className="w-1/3 bg-white shadow-lg rounded-xl p-6 border border-gray-100 sticky top-4">
-                <div className="flex items-center gap-3 mb-6 pb-2 border-b border-gray-200">
-                    <FaShoppingCart className="text-blue-600 text-xl" />
-                    <h2 className="font-bold text-lg text-gray-800">Keranjang Belanja</h2>
-                </div>
-
-                {cart.length === 0 ? (
-                    <div className="text-center py-8">
-                        <p className="text-gray-500 italic">Keranjang masih kosong</p>
-                        <p className="text-sm text-gray-400 mt-2">Tambahkan produk untuk memulai</p>
-                    </div>
-                ) : (
-                    <div className="space-y-4">
-                        {/* Contoh item cart */}
-                        <div className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
-                            <div className="flex items-center gap-3">
-                                <div className="w-12 h-12 bg-gray-200 rounded-md"></div>
-                                <div>
-                                    <p className="font-medium text-gray-800">Nama Produk</p>
-                                    <p className="text-sm text-gray-600">Rp 100.000</p>
-                                </div>
-                            </div>
-                            <button className="text-red-500 hover:text-red-700">
-                                <FaTrash />
-                            </button>
-                        </div>
-                    </div>
-                )}
-
-                {/* Total dan tombol konfirmasi - Selalu muncul */}
-                <div className="mt-6 pt-4 border-t border-gray-200">
-                    <div className="flex justify-between items-center mb-4">
-                        <p className="font-medium text-gray-700">Total:</p>
-                        <p className="font-bold text-lg text-gray-900">
-                            Rp {cart.length === 0 ? '0' : '100.000'}
-                        </p>
-                    </div>
-                    <button
-                        className={`w-full py-2.5 rounded-lg transition-colors duration-200 font-medium
-                ${cart.length === 0
-                                ? 'bg-blue-300 cursor-not-allowed text-gray-100'
-                                : 'bg-blue-800 hover:bg-blue-900 text-white'}`}
-                        disabled={cart.length === 0}
-                    >
-                        Konfirmasi Pembayaran
-                    </button>
-                </div>
-            </div>
+            {/* Komponen Cart */}
+            <Cart cart={cart} removeFromCart={removeFromCart} />
         </div>
     )
 }
