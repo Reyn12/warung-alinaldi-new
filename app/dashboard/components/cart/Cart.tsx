@@ -40,10 +40,6 @@ const Cart = ({ cart, updateQuantity, removeFromCart }: CartProps) => {
     const handleProcessOrder = () => {
         toast.success('Pesanan diproses!')
         setIsPaymentModalOpen(false)
-        // Di sini nanti bisa tambah logic lain seperti:
-        // - Simpan pesanan ke database
-        // - Reset cart
-        // - dll
     }
 
     return (
@@ -71,9 +67,9 @@ const Cart = ({ cart, updateQuantity, removeFromCart }: CartProps) => {
                         {cart.map((item) => (
                             <motion.div
                                 key={item.id}
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: 20 }}
+                                initial={{ opacity: 0, y: -20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: 20 }}
                                 className="flex items-center gap-4 p-4 border-b border-gray-100"
                             >
                                 <div className="relative">
