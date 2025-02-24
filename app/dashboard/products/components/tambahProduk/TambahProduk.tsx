@@ -3,6 +3,7 @@ import { Fragment, useState } from 'react';
 import { Dialog, Transition, TransitionChild } from '@headlessui/react';
 import { useForm } from 'react-hook-form';
 import Image from 'next/image';
+import toast, { Toaster } from 'react-hot-toast'; // Import react-hot-toast
 import {
     FaUpload,
     FaImage,
@@ -31,12 +32,13 @@ interface FormData {
     harga: number;
     stok: number;
     kategori_id: number;
-    gambar_url: File | string; // Allow File for upload or string for URL
+    gambar_url: File | string;
     tanggal_kadaluarsa: string;
 }
 
 export default function TambahProduk({ isOpen, onClose, categories }: TambahProdukProps) {
     const [previewImage, setPreviewImage] = useState<string>('');
+    const [isLoading, setIsLoading] = useState(false);
     const { register, handleSubmit, formState: { errors }, setValue } = useForm<FormData>();
     const [selectedImage, setSelectedImage] = useState<File | null>(null);
 
@@ -44,7 +46,6 @@ export default function TambahProduk({ isOpen, onClose, categories }: TambahProd
         const file = event.target.files?.[0];
         if (file) {
             setSelectedImage(file);
-            // Preview image
             const reader = new FileReader();
             reader.onloadend = () => {
                 setPreviewImage(reader.result as string);
@@ -55,32 +56,31 @@ export default function TambahProduk({ isOpen, onClose, categories }: TambahProd
 
     const onSubmit = async (data: any) => {
         try {
-            // Cek dulu ada gambar atau ngga
+            setIsLoading(true);
+
             if (!selectedImage) {
                 throw new Error('Pilih gambar dulu ya');
             }
 
-            const formData = new FormData()
-            formData.append('file', selectedImage)
+            const formData = new FormData();
+            formData.append('file', selectedImage);
 
-            // Upload gambar dulu
             const uploadResponse = await fetch('/api/upload', {
                 method: 'POST',
                 body: formData,
-            })
-            const uploadResult = await uploadResponse.json()
+            });
+            const uploadResult = await uploadResponse.json();
 
             if (!uploadResult.success) {
-                throw new Error('Gagal upload gambar')
+                throw new Error('Gagal upload gambar');
             }
 
             const fileName = uploadResult.url.split('/').pop();
 
-            // Setelah dapet URL gambar, baru submit data produk
             const productData = {
                 ...data,
-                gambar_url: fileName // Simpan hanya "shinzuijpg", bukan URL lengkap
-              };
+                gambar_url: fileName
+            };
 
             const response = await fetch('/api/dashboard/product', {
                 method: 'POST',
@@ -88,22 +88,35 @@ export default function TambahProduk({ isOpen, onClose, categories }: TambahProd
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(productData),
-            })
+            });
 
             if (!response.ok) {
-                throw new Error('Gagal menambah produk')
+                throw new Error('Gagal menambah produk');
             }
 
-            onClose()
+            // Tampilkan toast sukses
+            toast.success('Produk berhasil ditambahkan!');
+
+            // Jeda 1 detik sebelum tutup modal dan refresh
+            setTimeout(() => {
+                setIsLoading(false);
+                onClose();
+                window.location.reload(); // Refresh halaman
+            }, 1000);
+
         } catch (error) {
-            console.error('Error:', error)
-            // Handle error (tampilin notif error)
+            console.error('Error:', error);
+            setIsLoading(false);
+            toast.error(error instanceof Error ? error.message : 'Terjadi kesalahan');
         }
-    }
+    };
 
     return (
         <Transition show={isOpen} as={Fragment}>
             <Dialog onClose={onClose} className="relative z-50">
+                {/* Tambahkan Toaster di sini */}
+                <Toaster position="top-right" reverseOrder={false} />
+
                 <TransitionChild
                     as={Fragment}
                     enter="ease-out duration-300"
@@ -136,7 +149,6 @@ export default function TambahProduk({ isOpen, onClose, categories }: TambahProd
                                     <div className="grid grid-cols-2 gap-4">
                                         {/* Left Column */}
                                         <div className="space-y-4">
-                                            {/* Nama Produk */}
                                             <div className="space-y-2">
                                                 <div className="flex items-center gap-2">
                                                     <FaBox className="text-gray-500" />
@@ -150,7 +162,6 @@ export default function TambahProduk({ isOpen, onClose, categories }: TambahProd
                                                 {errors.nama && <p className="text-red-500 text-sm">{errors.nama.message}</p>}
                                             </div>
 
-                                            {/* Kode Produk */}
                                             <div className="space-y-2">
                                                 <div className="flex items-center gap-2">
                                                     <FaBarcode className="text-gray-500" />
@@ -165,7 +176,6 @@ export default function TambahProduk({ isOpen, onClose, categories }: TambahProd
                                                 {errors.kode_produk && <p className="text-red-500 text-sm">{errors.kode_produk.message}</p>}
                                             </div>
 
-                                            {/* Harga */}
                                             <div className="space-y-2">
                                                 <div className="flex items-center gap-2">
                                                     <FaDollarSign className="text-gray-500" />
@@ -183,7 +193,6 @@ export default function TambahProduk({ isOpen, onClose, categories }: TambahProd
 
                                         {/* Right Column */}
                                         <div className="space-y-4">
-                                            {/* Stok */}
                                             <div className="space-y-2">
                                                 <div className="flex items-center gap-2">
                                                     <FaWarehouse className="text-gray-500" />
@@ -198,7 +207,6 @@ export default function TambahProduk({ isOpen, onClose, categories }: TambahProd
                                                 {errors.stok && <p className="text-red-500 text-sm">{errors.stok.message}</p>}
                                             </div>
 
-                                            {/* Tanggal Kadaluarsa */}
                                             <div className="space-y-2">
                                                 <div className="flex items-center gap-2">
                                                     <FaCalendarAlt className="text-gray-500" />
@@ -212,7 +220,6 @@ export default function TambahProduk({ isOpen, onClose, categories }: TambahProd
                                                 {errors.tanggal_kadaluarsa && <p className="text-red-500 text-sm">{errors.tanggal_kadaluarsa.message}</p>}
                                             </div>
 
-                                            {/* Kategori (Dropdown) */}
                                             <div className="space-y-2">
                                                 <div className="flex items-center gap-2">
                                                     <FaBox className="text-gray-500" />
@@ -234,7 +241,7 @@ export default function TambahProduk({ isOpen, onClose, categories }: TambahProd
                                         </div>
                                     </div>
 
-                                    {/* Upload Gambar (Full Width) */}
+                                    {/* Upload Gambar */}
                                     <div className="space-y-2">
                                         <div className="flex items-center gap-2">
                                             <FaImage className="text-gray-500" />
@@ -251,19 +258,7 @@ export default function TambahProduk({ isOpen, onClose, categories }: TambahProd
                                                     className="hidden"
                                                     {...register('gambar_url', { required: 'Gambar wajib diisi' })}
                                                     accept="image/*"
-                                                    onChange={(e) => {
-                                                        const file = e.target.files?.[0];
-                                                        if (file) {
-                                                            setSelectedImage(file);  // Ini buat upload nanti
-                                                            const reader = new FileReader();
-                                                            reader.onloadend = () => {
-                                                                setPreviewImage(reader.result as string);  // Ini buat preview
-                                                            };
-                                                            reader.readAsDataURL(file);
-                                                            // Trigger react-hook-form onChange
-                                                            register('gambar_url').onChange(e);
-                                                        }
-                                                    }}
+                                                    onChange={handleImageChange}
                                                 />
                                             </label>
                                         </div>
@@ -273,7 +268,7 @@ export default function TambahProduk({ isOpen, onClose, categories }: TambahProd
                                         {errors.gambar_url && <p className="text-red-500 text-sm">{errors.gambar_url.message}</p>}
                                     </div>
 
-                                    {/* Tombol (Full Width) */}
+                                    {/* Tombol */}
                                     <div className="flex justify-end gap-3 mt-6">
                                         <button
                                             type="button"
@@ -284,9 +279,12 @@ export default function TambahProduk({ isOpen, onClose, categories }: TambahProd
                                         </button>
                                         <button
                                             type="submit"
-                                            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+                                            disabled={isLoading}
+                                            className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors ${
+                                                isLoading ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
+                                            }`}
                                         >
-                                            Simpan
+                                            {isLoading ? 'Menyimpan...' : 'Simpan'}
                                         </button>
                                     </div>
                                 </form>
@@ -294,6 +292,17 @@ export default function TambahProduk({ isOpen, onClose, categories }: TambahProd
                         </TransitionChild>
                     </div>
                 </div>
+
+                {/* Loading Modal */}
+                {isLoading && (
+                    <div className="fixed inset-0 flex items-center justify-center z-50">
+                        <div className="bg-black/50 absolute inset-0" />
+                        <div className="relative bg-white rounded-lg p-6 flex items-center gap-4">
+                            <div className="animate-spin rounded-full h-8 w-8 border-4 border-blue-600 border-t-transparent" />
+                            <p className="text-gray-700">Sedang memproses...</p>
+                        </div>
+                    </div>
+                )}
             </Dialog>
         </Transition>
     );
