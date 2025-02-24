@@ -1,6 +1,6 @@
 'use client';
-import { Fragment, useState, useEffect } from 'react';
-import { Dialog, Transition } from '@headlessui/react';
+import { Fragment, useState } from 'react';
+import { Dialog, Transition, TransitionChild } from '@headlessui/react';
 import { useForm } from 'react-hook-form';
 import Image from 'next/image';
 import {
@@ -38,59 +38,73 @@ interface FormData {
 export default function TambahProduk({ isOpen, onClose, categories }: TambahProdukProps) {
     const [previewImage, setPreviewImage] = useState<string>('');
     const { register, handleSubmit, formState: { errors }, setValue } = useForm<FormData>();
+    const [selectedImage, setSelectedImage] = useState<File | null>(null);
 
-    const onSubmit = async (data: FormData) => {
+    const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            setSelectedImage(file);
+            // Preview image
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setPreviewImage(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const onSubmit = async (data: any) => {
         try {
-            // Handle image upload (example: upload to a server and get URL)
-            let gambarUrl = data.gambar_url;
-            if (data.gambar_url instanceof File) {
-                const formData = new FormData();
-                formData.append('file', data.gambar_url);
-                const uploadResponse = await fetch('/api/upload', {
-                    method: 'POST',
-                    body: formData,
-                });
-                const uploadResult = await uploadResponse.json();
-                gambarUrl = uploadResult.url; // Assume the server returns the URL
+            // Cek dulu ada gambar atau ngga
+            if (!selectedImage) {
+                throw new Error('Pilih gambar dulu ya');
             }
 
-            // Format tanggal_kadaluarsa to ISO 8601
-            const formattedData = {
-                nama: data.nama,
-                kode_produk: Number(data.kode_produk), // Convert to number for numeric type
-                harga: Number(data.harga), // Convert to number for numeric type
-                stok: Number(data.stok), // Convert to number for int4
-                kategori_id: Number(data.kategori_id), // Convert to number for int8
-                gambar_url: gambarUrl, // Use the URL from upload or original string
-                tanggal_kadaluarsa: new Date(data.tanggal_kadaluarsa).toISOString(), // Convert to timestamp
-            };
+            const formData = new FormData()
+            formData.append('file', selectedImage)
+
+            // Upload gambar dulu
+            const uploadResponse = await fetch('/api/upload', {
+                method: 'POST',
+                body: formData,
+            })
+            const uploadResult = await uploadResponse.json()
+
+            if (!uploadResult.success) {
+                throw new Error('Gagal upload gambar')
+            }
+
+            const fileName = uploadResult.url.split('/').pop();
+
+            // Setelah dapet URL gambar, baru submit data produk
+            const productData = {
+                ...data,
+                gambar_url: fileName // Simpan hanya "shinzuijpg", bukan URL lengkap
+              };
 
             const response = await fetch('/api/dashboard/product', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(formattedData),
-            });
+                body: JSON.stringify(productData),
+            })
 
-            if (response.ok) {
-                onClose();
-                // Add logic to refresh data or show success message
-            } else {
-                const error = await response.json();
-                console.error('Error:', error);
-                // Show error message to user (e.g., alert or UI notification)
+            if (!response.ok) {
+                throw new Error('Gagal menambah produk')
             }
+
+            onClose()
         } catch (error) {
-            console.error('Error:', error);
-            // Show error message to user
+            console.error('Error:', error)
+            // Handle error (tampilin notif error)
         }
-    };
+    }
 
     return (
         <Transition show={isOpen} as={Fragment}>
             <Dialog onClose={onClose} className="relative z-50">
-                <Transition.Child
+                <TransitionChild
                     as={Fragment}
                     enter="ease-out duration-300"
                     enterFrom="opacity-0"
@@ -100,11 +114,11 @@ export default function TambahProduk({ isOpen, onClose, categories }: TambahProd
                     leaveTo="opacity-0"
                 >
                     <div className="fixed inset-0 bg-black/30" />
-                </Transition.Child>
+                </TransitionChild>
 
                 <div className="fixed inset-0 overflow-y-auto">
                     <div className="flex min-h-full items-center justify-center p-4">
-                        <Transition.Child
+                        <TransitionChild
                             as={Fragment}
                             enter="ease-out duration-300"
                             enterFrom="opacity-0 scale-95"
@@ -240,8 +254,14 @@ export default function TambahProduk({ isOpen, onClose, categories }: TambahProd
                                                     onChange={(e) => {
                                                         const file = e.target.files?.[0];
                                                         if (file) {
-                                                            const url = URL.createObjectURL(file);
-                                                            setPreviewImage(url);
+                                                            setSelectedImage(file);  // Ini buat upload nanti
+                                                            const reader = new FileReader();
+                                                            reader.onloadend = () => {
+                                                                setPreviewImage(reader.result as string);  // Ini buat preview
+                                                            };
+                                                            reader.readAsDataURL(file);
+                                                            // Trigger react-hook-form onChange
+                                                            register('gambar_url').onChange(e);
                                                         }
                                                     }}
                                                 />
@@ -271,7 +291,7 @@ export default function TambahProduk({ isOpen, onClose, categories }: TambahProd
                                     </div>
                                 </form>
                             </Dialog.Panel>
-                        </Transition.Child>
+                        </TransitionChild>
                     </div>
                 </div>
             </Dialog>
