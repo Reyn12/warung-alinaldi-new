@@ -115,3 +115,51 @@ export async function POST(request: Request) {
         )
     }
 }
+
+export async function PUT(request: Request) {
+    try {
+        const supabase = await createServerClient()
+        const formData = await request.json()
+        
+        const {
+            id,  // perlu id untuk update
+            nama,
+            kode_produk,
+            harga,
+            stok,
+            kategori_id,
+            gambar_url,
+            tanggal_kadaluarsa
+        } = formData
+
+        const { data, error } = await supabase
+            .from('products')
+            .update({
+                nama,
+                kode_produk,
+                harga,
+                stok,
+                kategori_id,
+                gambar_url,
+                tanggal_kadaluarsa
+            })
+            .eq('id', id)  // update where id = formData.id
+            .select()
+
+        if (error) {
+            throw error
+        }
+
+        return NextResponse.json({
+            status: 'success',
+            data
+        })
+
+    } catch (error) {
+        console.error('Server error:', error)
+        return NextResponse.json(
+            { error: 'Gagal update produk' },
+            { status: 500 }
+        )
+    }
+}
