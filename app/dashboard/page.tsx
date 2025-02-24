@@ -28,7 +28,13 @@ interface CartItem extends Product {
 
 const Dashboard = () => {
     const [searchQuery, setSearchQuery] = useState('')
-    const [cart, setCart] = useState<CartItem[]>([])
+    const [cart, setCart] = useState<CartItem[]>(() => {
+        if (typeof window !== 'undefined') {
+            const savedCart = localStorage.getItem('cart')
+            return savedCart ? JSON.parse(savedCart) : []
+        }
+        return []
+    })
     const [isClient, setIsClient] = useState(false)
     const [products, setProducts] = useState<Product[]>([])
     const [isLoading, setIsLoading] = useState(true)
@@ -48,6 +54,11 @@ const Dashboard = () => {
             return [...currentCart, { ...product, quantity: 1 }]
         })
     }
+
+    // Tambah useEffect buat update localStorage tiap cart berubah
+    useEffect(() => {
+        localStorage.setItem('cart', JSON.stringify(cart))
+    }, [cart])
 
     useEffect(() => {
         setIsClient(true)
