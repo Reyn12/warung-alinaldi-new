@@ -51,7 +51,7 @@ export async function GET(request: Request) {
 
         const transformedProducts = products.map(product => ({
             ...product,
-            gambar_url: `https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload/warung-alinaldi/${product.gambar_url.split('/').pop()}`
+            gambar_url: `${process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT}${product.gambar_url.split('/').pop()}`
         }))
 
         return NextResponse.json({
