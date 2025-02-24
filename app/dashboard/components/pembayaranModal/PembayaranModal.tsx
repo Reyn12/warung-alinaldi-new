@@ -24,6 +24,35 @@ const PembayaranModal = ({ isOpen, onClose, onSelectMethod, totalAmount, cart, o
         setStep('konfirmasi')
     }
 
+    const handleProcessOrder = async () => {
+        try {
+          const response = await fetch('/api/dashboard/orders', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              cart,
+              totalAmount,
+              paymentMethod: selectedMethod
+            })
+          })
+      
+          const data = await response.json()
+          
+          if (data.success) {
+            localStorage.removeItem('cart')
+            onProcessOrder() // Panggil fungsi yang dikasih dari parent
+            onClose()       // Tutup modal
+            window.location.reload()
+          } else {
+            alert('Gagal memproses pesanan')
+          }
+        } catch (error) {
+          alert('Terjadi kesalahan')
+        }
+      }
+
     return (
         <AnimatePresence>
             {isOpen && (
@@ -139,7 +168,7 @@ const PembayaranModal = ({ isOpen, onClose, onSelectMethod, totalAmount, cart, o
                                         Kembali
                                     </button>
                                     <button
-                                        onClick={onProcessOrder}
+                                        onClick={handleProcessOrder}
                                         className="w-1/2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
                                     >
                                         Proses Pesanan
