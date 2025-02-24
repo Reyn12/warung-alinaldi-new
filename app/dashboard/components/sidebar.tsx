@@ -65,6 +65,7 @@ export default function Sidebar({ onLogout, isMobileMenuOpen, onMobileMenuClose 
                         width={40}
                         height={40}
                         alt="Logo"
+                        priority
                         className="rounded-full border-2 border-blue-500"
                     />
                     {!isCollapsed && (
