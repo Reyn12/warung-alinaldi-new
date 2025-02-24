@@ -1,29 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import Image from 'next/image'
-import { 
-  FaHome, 
-  FaBox, 
-  FaShoppingCart, 
-  FaUsers, 
-  FaSignOutAlt,
-  FaBars
-} from 'react-icons/fa'
-
-interface SidebarItem {
-  icon: React.ReactNode
-  text: string
-  path: string
-}
-
-const sidebarItems: SidebarItem[] = [
-  { icon: <FaHome size={20} />, text: 'Dashboard', path: '/dashboard' },
-  { icon: <FaBox size={20} />, text: 'Produk', path: '/dashboard/products' },
-  { icon: <FaShoppingCart size={20} />, text: 'Transaksi', path: '/dashboard/transactions' },
-  { icon: <FaUsers size={20} />, text: 'Pelanggan', path: '/dashboard/customers' },
-]
+import Sidebar from './components/sidebar'
 
 export default function DashboardLayout({
   children,
@@ -31,8 +10,20 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   const router = useRouter()
-  const [isCollapsed, setIsCollapsed] = useState(false)
-  
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+
+  // Close sidebar when screen size changes
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) {
+        setIsMobileMenuOpen(false)
+      }
+    }
+
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
   const handleLogout = async () => {
     try {
       await fetch('/api/auth', { method: 'DELETE' })
@@ -44,58 +35,37 @@ export default function DashboardLayout({
 
   return (
     <div className="flex h-screen bg-gray-100">
+      {/* Mobile Overlay */}
+      {isMobileMenuOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-20 md:hidden"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
+      {/* Mobile Menu Button */}
+      <button
+        className="fixed top-4 right-4 z-30 md:hidden bg-gray-800 text-white p-2 rounded-lg"
+        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+      >
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+
       {/* Sidebar */}
-      <div className={`bg-gray-800 text-white transition-all duration-300 ${
-        isCollapsed ? 'w-20' : 'w-64'
-      }`}>
-        <div className="p-4 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Image
-              src="/images/logo-toko.jpeg"
-              width={40}
-              height={40}
-              alt="Logo"
-              className="rounded-full"
-            />
-            {!isCollapsed && <span className="font-bold">Warung Alinaldi</span>}
-          </div>
-          <button 
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            className="p-2 rounded-lg hover:bg-gray-700"
-          >
-            <FaBars />
-          </button>
-        </div>
-
-        <nav className="mt-8">
-          {sidebarItems.map((item, index) => (
-            <a
-              key={index}
-              href={item.path}
-              className="flex items-center space-x-4 px-6 py-3 hover:bg-gray-700 transition-colors"
-            >
-              <div>{item.icon}</div>
-              {!isCollapsed && <span>{item.text}</span>}
-            </a>
-          ))}
-        </nav>
-
-        <div className="absolute bottom-0 w-full p-4">
-          <button
-            onClick={handleLogout}
-            className={`flex items-center space-x-4 text-red-400 hover:text-red-300 transition-colors w-full ${
-              isCollapsed ? 'justify-center' : 'px-2'
-            }`}
-          >
-            <FaSignOutAlt size={20} />
-            {!isCollapsed && <span>Logout</span>}
-          </button>
-        </div>
+      <div className={`
+        fixed md:static
+        z-30 md:z-auto
+        ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+        transition-transform duration-300 ease-in-out
+      `}>
+        <Sidebar onLogout={handleLogout} isMobileMenuOpen={isMobileMenuOpen} onMobileMenuClose={() => setIsMobileMenuOpen(false)} />
       </div>
 
       {/* Main Content */}
       <div className="flex-1 overflow-auto">
-        <div className="p-8">
+        <div className="p-8 md:p-8 pt-20 md:pt-8">
           {children}
         </div>
       </div>
