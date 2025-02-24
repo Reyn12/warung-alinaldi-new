@@ -1,19 +1,29 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { FaPlus, FaSearch, FaEdit, FaTrash } from 'react-icons/fa'
 import Image from 'next/image'
+import TambahProduk from './components/tambahProduk/TambahProduk'
 
 interface Product {
-    id: number
-    kategori_id: number
-    nama: string
-    harga: number
-    stok: number
-    gambar_url: string
-    tanggal_kadaluarsa: string
-    created_at: string
-    kode_produk: number
+    id: number;
+    kategori_id: number;
+    nama: string;
+    harga: number;
+    stok: number;
+    gambar_url: string;
+    tanggal_kadaluarsa: string;
+    created_at: string;
+    kode_produk: string;
+    categories: {
+        id: number;
+        nama: string;
+    }
+}
+
+interface Category {
+    id: number;
+    nama: string;
 }
 
 export default function ProductsPage() {
@@ -21,9 +31,21 @@ export default function ProductsPage() {
     const [isLoading, setIsLoading] = useState(true)
     const [searchQuery, setSearchQuery] = useState('')
     const [isModalOpen, setIsModalOpen] = useState(false)
+    const [categories, setCategories] = useState<Category[]>([]);
+
+    const fetchCategories = async () => {
+        try {
+            const response = await fetch('/api/dashboard/product?type=categories');
+            const result = await response.json();
+            setCategories(result.data);
+        } catch (error) {
+            console.error('Error fetching categories:', error);
+        }
+    };
 
     useEffect(() => {
-        fetchProducts()
+        fetchProducts() 
+        fetchCategories();
     }, [])
 
     const fetchProducts = async () => {
@@ -71,7 +93,7 @@ export default function ProductsPage() {
                     className="w-full pl-12 pr-4 py-3 border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-md bg-white"
                 />
             </div>
-        
+
             {/* Products Grid dengan card yang lebih menarik */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {isLoading ? (
@@ -142,6 +164,13 @@ export default function ProductsPage() {
                     ))
                 )}
             </div>
+
+            {/* Modal Tambah Produk */}
+            <TambahProduk
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                categories={categories}
+            />
         </div>
     )
 }
