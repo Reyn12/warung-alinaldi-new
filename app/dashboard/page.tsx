@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { FaSearch, FaBarcode } from 'react-icons/fa'
+import { FaSearch, FaBarcode, FaChevronLeft, FaChevronRight, FaBoxOpen } from 'react-icons/fa'
 import { FiMinus, FiPlus } from 'react-icons/fi'
 import { motion } from 'framer-motion'
 import dynamic from 'next/dynamic'
@@ -18,6 +18,7 @@ interface Product {
     tanggal_kadaluarsa: string
     created_at: string
     kode_produk: number
+    categories?: { nama: string } // Tambahkan ini untuk relasi kategori
 }
 
 // Interface untuk item di cart
@@ -30,13 +31,27 @@ const Dashboard = () => {
     const [cart, setCart] = useState<CartItem[]>([])
     const [isClient, setIsClient] = useState(false)
     const [products, setProducts] = useState<Product[]>([])
-    const [isLoading, setIsLoading] = useState(true) // State untuk loading
+    const [isLoading, setIsLoading] = useState(true)
+    const [categories, setCategories] = useState<any[]>([])
+    const [selectedCategory, setSelectedCategory] = useState('Semua Produk') // State baru untuk kategori
 
     useEffect(() => {
         setIsClient(true)
     }, [])
 
-    const categories = ['Semua Produk', 'Favorit', 'Baru', 'Makanan', 'Minuman', 'Snack']
+    const fetchCategories = async () => {
+        try {
+            const response = await fetch('/api/dashboard/category')
+            const result = await response.json()
+            if (result.status === 'success') {
+                setCategories(result.data)
+            } else {
+                throw new Error(result.message)
+            }
+        } catch (err) {
+            console.error('Error fetching categories:', err)
+        }
+    }
 
     const addToCart = (product: Product) => {
         setCart(currentCart => {
@@ -67,28 +82,42 @@ const Dashboard = () => {
     }
 
     useEffect(() => {
-        const fetchProducts = async () => {
+        const fetchData = async () => {
             try {
-                setIsLoading(true) // Mulai loading
-                const response = await fetch('/api/dashboard/product')
-                const result = await response.json()
-                if (result.status === 'success') {
-                    setProducts(result.data)
-                } else {
-                    throw new Error(result.message)
+                setIsLoading(true)
+                const [productsResponse, categoriesResponse] = await Promise.all([
+                    fetch('/api/dashboard/product'),
+                    fetch('/api/dashboard/product?type=categories')
+                ])
+
+                const productsResult = await productsResponse.json()
+                const categoriesResult = await categoriesResponse.json()
+
+                if (productsResult.status === 'success') {
+                    setProducts(productsResult.data)
+                }
+                if (categoriesResult.status === 'success') {
+                    setCategories(categoriesResult.data)
                 }
             } catch (err) {
-                console.error('Error fetching products:', err)
+                console.error('Error fetching data:', err)
             } finally {
-                setIsLoading(false) // Selesai loading
+                setIsLoading(false)
             }
         }
-        fetchProducts()
+
+        fetchData()
     }, [])
 
     if (!isClient) {
         return <div>Loading...</div>
     }
+
+    // Filter products berdasarkan kategori yang dipilih
+    const filteredProducts = products.filter(product => {
+        if (selectedCategory === 'Semua Produk') return true
+        return product.categories?.nama === selectedCategory
+    })
 
     // Komponen Skeleton
     const SkeletonCard = () => (
@@ -104,6 +133,8 @@ const Dashboard = () => {
         <div className="flex gap-4 p-4">
             {/* Kolom Kiri */}
             <div className="w-2/3">
+
+                {/* Filter Cari Produk */}
                 <div className="flex gap-4 mb-4">
                     <div className="flex-1 relative">
                         <input
@@ -120,36 +151,81 @@ const Dashboard = () => {
                     </button>
                 </div>
 
-                <div className="flex gap-2 mb-6 overflow-x-auto custom-scrollbar pb-2">
-                    {categories.map((category) => (
+                {/* Kategori Produk */}
+                <div className="relative">
+                    <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-white to-transparent z-10 rounded-lg"></div>
+                    <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-white to-transparent z-10 rounded-lg"></div>
+
+                    <button
+                        className="absolute left-0 top-1/2 -translate-y-1/2 z-20 p-2 bg-white rounded-full shadow-md hover:bg-gray-50"
+                        onClick={() => {
+                            const container = document.querySelector('.category-scroll')
+                            container?.scrollBy({ left: -200, behavior: 'smooth' })
+                        }}
+                    >
+                        <FaChevronLeft className="text-gray-600" />
+                    </button>
+
+                    <button
+                        className="absolute right-0 top-1/2 -translate-y-1/2 z-20 p-2 bg-white rounded-full shadow-md hover:bg-gray-50"
+                        onClick={() => {
+                            const container = document.querySelector('.category-scroll')
+                            container?.scrollBy({ left: 200, behavior: 'smooth' })
+                        }}
+                    >
+                        <FaChevronRight className="text-gray-600" />
+                    </button>
+
+                    <div className="category-scroll flex gap-2 mb-6 overflow-x-auto custom-scrollbar  pb-2 px-10">
                         <button
-                            key={category}
-                            className="px-4 py-2 bg-gray-100 rounded-full whitespace-nowrap hover:bg-blue-500 hover:text-white transition-colors"
+                            key="all"
+                            onClick={() => setSelectedCategory('Semua Produk')}
+                            className={`px-4 py-2 my-4 rounded-full whitespace-nowrap transition-colors ${selectedCategory === 'Semua Produk'
+                                ? 'bg-blue-100 text-blue-600'
+                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                }`}
                         >
-                            {category}
+                            Semua Produk
                         </button>
-                    ))}
+                        {categories.map((category) => (
+                            <button
+                                key={category.id}
+                                onClick={() => setSelectedCategory(category.nama)}
+                                className={`px-4 py-2 my-4 rounded-full whitespace-nowrap transition-colors ${selectedCategory === category.nama
+                                    ? 'bg-blue-100 text-blue-600'
+                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                    }`}
+                            >
+                                {category.nama}
+                            </button>
+                        ))}
+                    </div>
                 </div>
 
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                     {isLoading ? (
-                        // Tampilkan skeleton saat loading
                         Array.from({ length: 8 }).map((_, index) => (
                             <SkeletonCard key={index} />
                         ))
+                    ) : filteredProducts.length === 0 ? (
+                        <div className="col-span-full flex flex-col items-center justify-center py-10 text-gray-500">
+                            <FaBoxOpen className="w-24 h-24 mb-4 opacity-50" />
+
+                            <p className="text-lg font-medium">Tidak ada produk yang ditemukan</p>
+                            <p className="text-sm">Coba pilih kategori lain atau ubah kata kunci pencarian</p>
+                        </div>
                     ) : (
-                        // Tampilkan produk saat data sudah dimuat
-                        products.map((product) => {
+                        filteredProducts.map((product) => {
                             const cartItem = cart.find(item => item.id === product.id)
                             const quantity = cartItem ? cartItem.quantity : 0
 
                             return (
                                 <motion.div
                                     key={product.id}
-                                    initial={{ x: -50 }} // Mulai dari kiri (50px ke kiri dari posisi normal)
-                                    animate={{ x: 0 }}   // Bergerak ke posisi normal
-                                    whileHover={{ scale: 1.03 }} // Hover tetap sama
-                                    transition={{ duration: 0.2 }} // Durasi animasi tetap
+                                    initial={{ x: -50 }}
+                                    animate={{ x: 0 }}
+                                    whileHover={{ scale: 1.03 }}
+                                    transition={{ duration: 0.2 }}
                                     className="bg-white rounded-lg shadow p-3"
                                 >
                                     <motion.img

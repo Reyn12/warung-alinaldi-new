@@ -1,5 +1,5 @@
 // components/cart/Cart.tsx
-import { FaShoppingCart, FaTrash } from 'react-icons/fa'
+import { FaShoppingCart, FaTrash, FaShoppingBasket } from 'react-icons/fa'
 import { FiMinus, FiPlus } from 'react-icons/fi'
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -24,87 +24,105 @@ interface CartProps {
 
 const Cart = ({ cart, updateQuantity, removeFromCart }: CartProps) => {
     // Hitung total
-    const total = cart.reduce((sum, item) => sum + item.harga * item.quantity, 0)
+    const calculateTotal = () => {
+        return cart.reduce((sum, item) => sum + item.harga * item.quantity, 0)
+    }
+
+    const handleCheckout = () => {
+        // Logic untuk checkout bisa ditambahkan di sini
+        console.log("Proses checkout dimulai")
+    }
 
     return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="w-1/3 bg-white shadow-lg rounded-xl p-6 border border-gray-100 sticky top-4"
+            className="bg-white w-[350px] min-h-[500px] rounded-lg shadow-lg p-4 flex flex-col border border-gray-100 sticky top-4"
         >
-            <div className="flex items-center gap-3 mb-6 pb-2 border-b border-gray-200">
-                <FaShoppingCart className="text-blue-600 text-xl" />
-                <h2 className="font-bold text-lg text-gray-800">Keranjang Belanja</h2>
+            {/* Header */}
+            <div className="flex items-center gap-2 mb-4">
+                <FaShoppingCart className="text-blue-600" />
+                <h2 className="font-semibold">Keranjang Belanja</h2>
             </div>
 
-            {cart.length === 0 ? (
-                <div className="text-center py-8">
-                    <p className="text-gray-500 italic">Keranjang masih kosong</p>
-                    <p className="text-sm text-gray-400 mt-2">Tambahkan produk untuk memulai</p>
-                </div>
-            ) : (
-                <AnimatePresence>
-                    {cart.map((item) => (
-                        <motion.div
-                            key={item.id}
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: 20 }}
-                            whileHover={{ scale: 1.02 }}
-                            className="flex items-center justify-between bg-gray-50 p-3 rounded-lg"
-                        >
-                            <div className="flex items-center gap-3">
-                                <img
-                                    src={item.gambar_url}
-                                    alt={item.nama}
-                                    className="w-12 h-12 object-cover rounded-md"
-                                />
-                                <div>
-                                    <p className="font-medium text-gray-800">{item.nama}</p>
-                                    <p className="text-sm text-gray-600">
-                                        Rp {item.harga.toLocaleString()} x
-                                    </p>
-                                    <div className="flex items-center gap-2 mt-1">
+            {/* Cart Items - tambah flex-1 agar mengisi space yang tersedia */}
+            <div className="flex-1 overflow-y-auto">
+                {cart.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center text-gray-500 py-8">
+                        <FaShoppingBasket className="w-16 h-16 mb-4 opacity-50" />
+                        <p className="font-medium">Keranjang masih kosong</p>
+                        <p className="text-sm text-gray-400">Tambahkan produk untuk memulai</p>
+                    </div>
+                ) : (
+                    <AnimatePresence>
+                        {cart.map((item) => (
+                            <motion.div
+                                key={item.id}
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: 20 }}
+                                className="flex items-center gap-4 p-4 border-b border-gray-100"
+                            >
+                                <div className="relative">
+                                    <img
+                                        src={item.gambar_url}
+                                        alt={item.nama}
+                                        className="w-16 h-16 object-cover rounded-lg border border-gray-200" // tambah border
+                                    />
+                                    <span className="absolute -top-2 -right-2 bg-gray-200 text-sm px-2 rounded-full">
+                                        {item.quantity}
+                                    </span>
+                                </div>
+
+                                <div className="flex-1">
+                                    <h3 className="font-medium text-gray-800">{item.nama}</h3>
+                                    <p className="text-sm text-gray-500">Rp {item.harga.toLocaleString()}</p>
+                                </div>
+
+                                <div className="flex flex-col items-end gap-2">
+                                    <button
+                                        onClick={() => removeFromCart(item.id)}
+                                        className="text-red-500 hover:text-red-700 p-1"
+                                    >
+                                        <FaTrash size={16} />
+                                    </button>
+
+                                    <div className="flex items-center gap-3">
                                         <button
                                             onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                                            disabled={item.quantity <= 1}
-                                            className="w-6 h-6 bg-red-400 rounded-full flex items-center justify-center hover:bg-red-500 disabled:opacity-50 disabled:bg-gray-200"
+                                            className="w-8 h-8 flex items-center justify-center bg-red-100 text-red-500 rounded-lg hover:bg-red-200"
                                         >
-                                            <FiMinus className="text-white text-sm" />
+                                            -
                                         </button>
-                                        <span className="text-sm font-medium">{item.quantity}</span>
+                                        <span className="w-8 text-center">{item.quantity}</span>
                                         <button
                                             onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                                            className="w-6 h-6 bg-green-400 rounded-full flex items-center justify-center hover:bg-green-500"
+                                            className="w-8 h-8 flex items-center justify-center bg-green-100 text-green-500 rounded-lg hover:bg-green-200"
                                         >
-                                            <FiPlus className="text-white text-sm" />
+                                            +
                                         </button>
                                     </div>
                                 </div>
-                            </div>
-                            <button
-                                onClick={() => removeFromCart(item.id)}
-                                className="text-red-500 hover:text-red-700"
-                            >
-                                <FaTrash />
-                            </button>
-                        </motion.div>
-                    ))}
-                </AnimatePresence>
-            )}
+                            </motion.div>
+                        ))}
+                    </AnimatePresence>
+                )}
+            </div>
 
-            <div className="mt-6 pt-4 border-t border-gray-200">
+            {/* Footer dengan total dan tombol - akan selalu di bawah */}
+            <div className="mt-auto pt-4 border-t">
                 <div className="flex justify-between items-center mb-4">
-                    <p className="font-medium text-gray-700">Total:</p>
-                    <p className="font-bold text-lg text-gray-900">
-                        Rp {total.toLocaleString()}
-                    </p>
+                    <span className="font-medium">Total:</span>
+                    <span className="font-bold text-lg">
+                        Rp {calculateTotal().toLocaleString()}
+                    </span>
                 </div>
                 <button
-                    className={`w-full py-2.5 rounded-lg transition-colors duration-200 font-medium
+                    className={`w-full bg-blue-600 text-white py-3 rounded-lg transition-colors
                         ${cart.length === 0
-                            ? 'bg-blue-800 opacity-30 cursor-not-allowed text-gray-100'
-                            : 'bg-blue-800 hover:bg-blue-900 text-white'}`}
+                            ? 'opacity-50 cursor-not-allowed'
+                            : 'hover:bg-blue-700'}`}
+                    onClick={handleCheckout}
                     disabled={cart.length === 0}
                 >
                     Konfirmasi Pembayaran
