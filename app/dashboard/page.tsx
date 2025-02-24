@@ -5,6 +5,7 @@ import { FiMinus, FiPlus } from 'react-icons/fi'
 import { motion } from 'framer-motion'
 import dynamic from 'next/dynamic'
 import Cart from './components/cart/Cart'
+import toast from 'react-hot-toast'
 
 // Interface untuk tipe produk
 interface Product {
@@ -93,6 +94,7 @@ const Dashboard = () => {
                     console.log('Found product:', product)
                     addToCart(product)
                 } else {
+                    toast.error(`Produk dengan kode ${barcodeBuffer} tidak ditemukan`)
                     console.log('Products in database:', products.map(p => ({
                         kode: p.kode_produk,
                         tipe: typeof p.kode_produk
