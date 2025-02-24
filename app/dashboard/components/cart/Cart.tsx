@@ -26,6 +26,7 @@ interface CartProps {
 
 const Cart = ({ cart, updateQuantity, removeFromCart }: CartProps) => {
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false)
+    const [selectedMethod, setSelectedMethod] = useState<'qris' | 'tunai'>('tunai')
 
     // Hitung total
     const calculateTotal = () => {
@@ -33,14 +34,16 @@ const Cart = ({ cart, updateQuantity, removeFromCart }: CartProps) => {
     }
 
     const handlePaymentMethod = (method: 'qris' | 'tunai') => {
-        if (method === 'qris') {
-            toast.success('Pembayaran QRIS dipilih')
-            // Handle QRIS payment
-        } else {
-            toast.success('Pembayaran Tunai dipilih')
-            // Handle Cash payment
-        }
+        setSelectedMethod(method)
+    }
+
+    const handleProcessOrder = () => {
+        toast.success('Pesanan diproses!')
         setIsPaymentModalOpen(false)
+        // Di sini nanti bisa tambah logic lain seperti:
+        // - Simpan pesanan ke database
+        // - Reset cart
+        // - dll
     }
 
     return (
@@ -145,6 +148,7 @@ const Cart = ({ cart, updateQuantity, removeFromCart }: CartProps) => {
                 onSelectMethod={handlePaymentMethod}
                 totalAmount={calculateTotal()}
                 cart={cart}  // Tambah ini
+                onProcessOrder={handleProcessOrder}
             />
         </motion.div>
     )

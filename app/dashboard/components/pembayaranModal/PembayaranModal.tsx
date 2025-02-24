@@ -9,10 +9,12 @@ interface PembayaranModalProps {
     onSelectMethod: (method: 'qris' | 'tunai') => void
     totalAmount: number
     cart: CartItem[] // Tambah prop cart
+    onProcessOrder: () => void
 }
 
-const PembayaranModal = ({ isOpen, onClose, onSelectMethod, totalAmount, cart }: PembayaranModalProps) => {
+const PembayaranModal = ({ isOpen, onClose, onSelectMethod, totalAmount, cart, onProcessOrder }: PembayaranModalProps) => {
     const [step, setStep] = useState<'konfirmasi' | 'pembayaran'>('konfirmasi')
+    const [selectedMethod, setSelectedMethod] = useState<'qris' | 'tunai'>('tunai')
 
     const handleConfirm = () => {
         setStep('pembayaran')
@@ -46,8 +48,8 @@ const PembayaranModal = ({ isOpen, onClose, onSelectMethod, totalAmount, cart }:
                                 <div className="max-h-[300px] overflow-y-auto mb-4">
                                     {cart.map((item) => (
                                         <div key={item.id} className="flex items-center gap-3 py-2 border-b">
-                                            <img 
-                                                src={item.gambar_url} 
+                                            <img
+                                                src={item.gambar_url}
                                                 alt={item.nama}
                                                 className="w-12 h-12 object-cover rounded"
                                             />
@@ -87,7 +89,7 @@ const PembayaranModal = ({ isOpen, onClose, onSelectMethod, totalAmount, cart }:
                         ) : (
                             <>
                                 <div className="flex items-center mb-4">
-                                    <button 
+                                    <button
                                         onClick={handleBack}
                                         className="text-gray-600 hover:text-gray-800 mr-3"
                                     >
@@ -104,7 +106,11 @@ const PembayaranModal = ({ isOpen, onClose, onSelectMethod, totalAmount, cart }:
                                         whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}
                                         onClick={() => onSelectMethod('qris')}
-                                        className="flex flex-col items-center justify-center p-6 border-2 border-gray-200 rounded-xl hover:border-blue-500 hover:bg-blue-50 transition-all"
+                                        className={`flex flex-col items-center justify-center p-6 border-2 ${
+                                            selectedMethod === 'qris' 
+                                                ? 'border-blue-500 bg-blue-50' 
+                                                : 'border-gray-200 hover:border-blue-500 hover:bg-blue-50'
+                                        } rounded-xl transition-all`}
                                     >
                                         <FaQrcode className="text-4xl mb-3 text-blue-500" />
                                         <span className="font-semibold">QRIS</span>
@@ -114,11 +120,30 @@ const PembayaranModal = ({ isOpen, onClose, onSelectMethod, totalAmount, cart }:
                                         whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}
                                         onClick={() => onSelectMethod('tunai')}
-                                        className="flex flex-col items-center justify-center p-6 border-2 border-gray-200 rounded-xl hover:border-green-500 hover:bg-green-50 transition-all"
+                                        className={`flex flex-col items-center justify-center p-6 border-2 ${
+                                            selectedMethod === 'tunai' 
+                                                ? 'border-blue-500 bg-blue-50' 
+                                                : 'border-gray-200 hover:border-blue-500 hover:bg-blue-50'
+                                        } rounded-xl transition-all`}
                                     >
-                                        <FaMoneyBillWave className="text-4xl mb-3 text-green-500" />
+                                        <FaMoneyBillWave className="text-4xl mb-3 text-blue-500" />
                                         <span className="font-semibold">TUNAI</span>
                                     </motion.button>
+                                </div>
+
+                                <div className="flex gap-4 mt-6 w-full">
+                                    <button
+                                        onClick={handleBack}
+                                        className="w-1/2 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-medium"
+                                    >
+                                        Kembali
+                                    </button>
+                                    <button
+                                        onClick={onProcessOrder}
+                                        className="w-1/2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+                                    >
+                                        Proses Pesanan
+                                    </button>
                                 </div>
                             </>
                         )}
