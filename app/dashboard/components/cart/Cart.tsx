@@ -1,6 +1,9 @@
-// components/cart/Cart.tsx
+'use client'
 import { FaShoppingCart, FaShoppingBasket } from 'react-icons/fa'
 import { motion, AnimatePresence } from 'framer-motion'
+import PembayaranModal from '../pembayaranModal/PembayaranModal'
+import { useState, useEffect } from 'react'
+import { toast } from 'react-hot-toast'
 
 interface CartItem {
     id: number
@@ -22,14 +25,22 @@ interface CartProps {
 }
 
 const Cart = ({ cart, updateQuantity, removeFromCart }: CartProps) => {
+    const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false)
+
     // Hitung total
     const calculateTotal = () => {
         return cart.reduce((sum, item) => sum + item.harga * item.quantity, 0)
     }
 
-    const handleCheckout = () => {
-        // Logic untuk checkout bisa ditambahkan di sini
-        console.log("Proses checkout dimulai")
+    const handlePaymentMethod = (method: 'qris' | 'tunai') => {
+        if (method === 'qris') {
+            toast.success('Pembayaran QRIS dipilih')
+            // Handle QRIS payment
+        } else {
+            toast.success('Pembayaran Tunai dipilih')
+            // Handle Cash payment
+        }
+        setIsPaymentModalOpen(false)
     }
 
     return (
@@ -66,7 +77,7 @@ const Cart = ({ cart, updateQuantity, removeFromCart }: CartProps) => {
                                     <img
                                         src={item.gambar_url}
                                         alt={item.nama}
-                                        className="w-16 h-16 object-cover rounded-lg border border-gray-200" // tambah border
+                                        className="w-16 h-16 object-cover rounded-lg border border-gray-200"
                                     />
                                     <span className="absolute -top-2 -right-2 bg-gray-200 text-sm px-2 rounded-full">
                                         {item.quantity}
@@ -107,7 +118,7 @@ const Cart = ({ cart, updateQuantity, removeFromCart }: CartProps) => {
                 )}
             </div>
 
-            {/* Footer dengan total dan tombol - akan selalu di bawah */}
+            {/* Footer dengan total dan tombol */}
             <div className="mt-auto pt-4 border-t">
                 <div className="flex justify-between items-center mb-4">
                     <span className="font-medium">Total:</span>
@@ -120,12 +131,21 @@ const Cart = ({ cart, updateQuantity, removeFromCart }: CartProps) => {
                         ${cart.length === 0
                             ? 'opacity-50 cursor-not-allowed'
                             : 'hover:bg-blue-700'}`}
-                    onClick={handleCheckout}
+                    onClick={() => setIsPaymentModalOpen(true)}
                     disabled={cart.length === 0}
                 >
                     Konfirmasi Pembayaran
                 </button>
             </div>
+
+            {/* Payment Modal */}
+            <PembayaranModal
+                isOpen={isPaymentModalOpen}
+                onClose={() => setIsPaymentModalOpen(false)}
+                onSelectMethod={handlePaymentMethod}
+                totalAmount={calculateTotal()}
+                cart={cart}  // Tambah ini
+            />
         </motion.div>
     )
 }
