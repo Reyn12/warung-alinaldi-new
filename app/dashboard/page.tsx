@@ -1,8 +1,9 @@
-// page.tsx
 'use client'
 
 import { useState, useEffect } from 'react'
 import { FaSearch, FaBarcode } from 'react-icons/fa'
+import { FiMinus, FiPlus } from 'react-icons/fi'
+import { motion } from 'framer-motion'
 import dynamic from 'next/dynamic'
 import Cart from './components/cart/Cart'
 
@@ -29,6 +30,7 @@ const Dashboard = () => {
     const [cart, setCart] = useState<CartItem[]>([])
     const [isClient, setIsClient] = useState(false)
     const [products, setProducts] = useState<Product[]>([])
+    const [isLoading, setIsLoading] = useState(true) // State untuk loading
 
     useEffect(() => {
         setIsClient(true)
@@ -50,6 +52,16 @@ const Dashboard = () => {
         })
     }
 
+    const updateQuantity = (id: number, newQuantity: number) => {
+        if (newQuantity < 1) {
+            removeFromCart(id)
+            return
+        }
+        setCart(currentCart => currentCart.map(item =>
+            item.id === id ? { ...item, quantity: newQuantity } : item
+        ))
+    }
+
     const removeFromCart = (id: number) => {
         setCart(currentCart => currentCart.filter(item => item.id !== id))
     }
@@ -57,6 +69,7 @@ const Dashboard = () => {
     useEffect(() => {
         const fetchProducts = async () => {
             try {
+                setIsLoading(true) // Mulai loading
                 const response = await fetch('/api/dashboard/product')
                 const result = await response.json()
                 if (result.status === 'success') {
@@ -66,6 +79,8 @@ const Dashboard = () => {
                 }
             } catch (err) {
                 console.error('Error fetching products:', err)
+            } finally {
+                setIsLoading(false) // Selesai loading
             }
         }
         fetchProducts()
@@ -74,6 +89,16 @@ const Dashboard = () => {
     if (!isClient) {
         return <div>Loading...</div>
     }
+
+    // Komponen Skeleton
+    const SkeletonCard = () => (
+        <div className="bg-white rounded-lg shadow p-3 animate-pulse">
+            <div className="w-full h-40 bg-gray-300 rounded-lg mb-2"></div>
+            <div className="h-4 bg-gray-300 rounded w-3/4 mb-2"></div>
+            <div className="h-4 bg-gray-300 rounded w-1/2 mb-2"></div>
+            <div className="h-8 bg-gray-300 rounded w-full"></div>
+        </div>
+    )
 
     return (
         <div className="flex gap-4 p-4">
@@ -107,28 +132,70 @@ const Dashboard = () => {
                 </div>
 
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {products.map((product) => (
-                        <div key={product.id} className="bg-white rounded-lg shadow p-3">
-                            <img
-                                src={product.gambar_url}
-                                alt={product.nama}
-                                className="w-full h-40 object-cover rounded-lg mb-2"
-                            />
-                            <h3 className="font-semibold">{product.nama}</h3>
-                            <p className="text-blue-600 mb-2">Rp {product.harga.toLocaleString()}</p>
-                            <button
-                                onClick={() => addToCart(product)}
-                                className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition-colors"
-                            >
-                                Tambah ke Keranjang
-                            </button>
-                        </div>
-                    ))}
+                    {isLoading ? (
+                        // Tampilkan skeleton saat loading
+                        Array.from({ length: 8 }).map((_, index) => (
+                            <SkeletonCard key={index} />
+                        ))
+                    ) : (
+                        // Tampilkan produk saat data sudah dimuat
+                        products.map((product) => {
+                            const cartItem = cart.find(item => item.id === product.id)
+                            const quantity = cartItem ? cartItem.quantity : 0
+
+                            return (
+                                <motion.div
+                                    key={product.id}
+                                    initial={{ x: -50 }} // Mulai dari kiri (50px ke kiri dari posisi normal)
+                                    animate={{ x: 0 }}   // Bergerak ke posisi normal
+                                    whileHover={{ scale: 1.03 }} // Hover tetap sama
+                                    transition={{ duration: 0.2 }} // Durasi animasi tetap
+                                    className="bg-white rounded-lg shadow p-3"
+                                >
+                                    <motion.img
+                                        whileHover={{ scale: 1.05 }}
+                                        transition={{ duration: 0.2 }}
+                                        src={product.gambar_url}
+                                        alt={product.nama}
+                                        className="w-full h-40 object-cover rounded-lg mb-2"
+                                    />
+                                    <h3 className="font-semibold">{product.nama}</h3>
+                                    <div className="flex items-center justify-between mb-2">
+                                        <p className="text-blue-600">Rp {product.harga.toLocaleString()}</p>
+                                        {quantity > 0 && (
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    onClick={() => updateQuantity(product.id, quantity - 1)}
+                                                    disabled={quantity <= 0}
+                                                    className="w-6 h-6 bg-red-400 rounded-full flex items-center justify-center hover:bg-red-500 disabled:opacity-50 disabled:bg-gray-200"
+                                                >
+                                                    <FiMinus className="text-white text-sm" />
+                                                </button>
+                                                <span className="text-sm font-medium">{quantity}</span>
+                                                <button
+                                                    onClick={() => updateQuantity(product.id, quantity + 1)}
+                                                    className="w-6 h-6 bg-green-400 rounded-full flex items-center justify-center hover:bg-green-500"
+                                                >
+                                                    <FiPlus className="text-white text-sm" />
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <button
+                                        onClick={() => addToCart(product)}
+                                        className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition-colors"
+                                    >
+                                        Tambah ke Keranjang
+                                    </button>
+                                </motion.div>
+                            )
+                        })
+                    )}
                 </div>
             </div>
 
             {/* Komponen Cart */}
-            <Cart cart={cart} removeFromCart={removeFromCart} />
+            <Cart cart={cart} updateQuantity={updateQuantity} removeFromCart={removeFromCart} />
         </div>
     )
 }

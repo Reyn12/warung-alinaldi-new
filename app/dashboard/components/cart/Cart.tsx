@@ -1,5 +1,7 @@
 // components/cart/Cart.tsx
 import { FaShoppingCart, FaTrash } from 'react-icons/fa'
+import { FiMinus, FiPlus } from 'react-icons/fi'
+import { motion, AnimatePresence } from 'framer-motion'
 
 interface CartItem {
     id: number
@@ -16,15 +18,20 @@ interface CartItem {
 
 interface CartProps {
     cart: CartItem[]
+    updateQuantity: (id: number, newQuantity: number) => void
     removeFromCart: (id: number) => void
 }
 
-const Cart = ({ cart, removeFromCart }: CartProps) => {
+const Cart = ({ cart, updateQuantity, removeFromCart }: CartProps) => {
     // Hitung total
     const total = cart.reduce((sum, item) => sum + item.harga * item.quantity, 0)
 
     return (
-        <div className="w-1/3 bg-white shadow-lg rounded-xl p-6 border border-gray-100 sticky top-4">
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="w-1/3 bg-white shadow-lg rounded-xl p-6 border border-gray-100 sticky top-4"
+        >
             <div className="flex items-center gap-3 mb-6 pb-2 border-b border-gray-200">
                 <FaShoppingCart className="text-blue-600 text-xl" />
                 <h2 className="font-bold text-lg text-gray-800">Keranjang Belanja</h2>
@@ -36,9 +43,16 @@ const Cart = ({ cart, removeFromCart }: CartProps) => {
                     <p className="text-sm text-gray-400 mt-2">Tambahkan produk untuk memulai</p>
                 </div>
             ) : (
-                <div className="space-y-4">
+                <AnimatePresence>
                     {cart.map((item) => (
-                        <div key={item.id} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
+                        <motion.div
+                            key={item.id}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: 20 }}
+                            whileHover={{ scale: 1.02 }}
+                            className="flex items-center justify-between bg-gray-50 p-3 rounded-lg"
+                        >
                             <div className="flex items-center gap-3">
                                 <img
                                     src={item.gambar_url}
@@ -48,8 +62,24 @@ const Cart = ({ cart, removeFromCart }: CartProps) => {
                                 <div>
                                     <p className="font-medium text-gray-800">{item.nama}</p>
                                     <p className="text-sm text-gray-600">
-                                        Rp {item.harga.toLocaleString()} x {item.quantity}
+                                        Rp {item.harga.toLocaleString()} x
                                     </p>
+                                    <div className="flex items-center gap-2 mt-1">
+                                        <button
+                                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                                            disabled={item.quantity <= 1}
+                                            className="w-6 h-6 bg-red-400 rounded-full flex items-center justify-center hover:bg-red-500 disabled:opacity-50 disabled:bg-gray-200"
+                                        >
+                                            <FiMinus className="text-white text-sm" />
+                                        </button>
+                                        <span className="text-sm font-medium">{item.quantity}</span>
+                                        <button
+                                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                                            className="w-6 h-6 bg-green-400 rounded-full flex items-center justify-center hover:bg-green-500"
+                                        >
+                                            <FiPlus className="text-white text-sm" />
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                             <button
@@ -58,9 +88,9 @@ const Cart = ({ cart, removeFromCart }: CartProps) => {
                             >
                                 <FaTrash />
                             </button>
-                        </div>
+                        </motion.div>
                     ))}
-                </div>
+                </AnimatePresence>
             )}
 
             <div className="mt-6 pt-4 border-t border-gray-200">
@@ -73,14 +103,14 @@ const Cart = ({ cart, removeFromCart }: CartProps) => {
                 <button
                     className={`w-full py-2.5 rounded-lg transition-colors duration-200 font-medium
                         ${cart.length === 0
-                            ? 'bg-blue-300 cursor-not-allowed text-gray-100'
+                            ? 'bg-blue-800 opacity-30 cursor-not-allowed text-gray-100'
                             : 'bg-blue-800 hover:bg-blue-900 text-white'}`}
                     disabled={cart.length === 0}
                 >
                     Konfirmasi Pembayaran
                 </button>
             </div>
-        </div>
+        </motion.div>
     )
 }
 
