@@ -1,6 +1,5 @@
 // components/cart/Cart.tsx
-import { FaShoppingCart, FaTrash, FaShoppingBasket } from 'react-icons/fa'
-import { FiMinus, FiPlus } from 'react-icons/fi'
+import { FaShoppingCart, FaShoppingBasket } from 'react-icons/fa'
 import { motion, AnimatePresence } from 'framer-motion'
 
 interface CartItem {
@@ -84,7 +83,6 @@ const Cart = ({ cart, updateQuantity, removeFromCart }: CartProps) => {
                                         onClick={() => removeFromCart(item.id)}
                                         className="text-red-500 hover:text-red-700 p-1"
                                     >
-                                        <FaTrash size={16} />
                                     </button>
 
                                     <div className="flex items-center gap-3">
