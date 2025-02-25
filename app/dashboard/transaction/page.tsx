@@ -1,28 +1,21 @@
 "use client"
 
-import { Card } from "@/components/ui/card"
 import { DataTable } from "@/components/ui/data-table"
 import { useEffect, useState } from "react"
 import { format } from "date-fns"
 import { id } from "date-fns/locale"
 import { ColumnDef } from "@tanstack/react-table"
 import { SummaryCard } from "./components/SummaryCard"
-
+import { Eye } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { DetailPesanan } from "./components/DetailPesanan"
 
 interface Transaction {
     id: string
     date: string
-    product: string
-    quantity: number
     total: number
-}
-
-interface SummaryCardProps {
-    summary: {
-        today: number
-        thisWeek: number
-        thisMonth: number
-    }
+    metode: string
+    status: string
 }
 
 export default function TransactionPage() {
@@ -33,8 +26,10 @@ export default function TransactionPage() {
         thisWeek: 0,
         thisMonth: 0
     })
+    const [isLoading, setIsLoading] = useState(true)
+    const [selectedId, setSelectedId] = useState<string | null>(null)
 
-    // Tambah useEffect khusus untuk handle client-side
+
     useEffect(() => {
         setIsClient(true)
     }, [])
@@ -42,79 +37,78 @@ export default function TransactionPage() {
     useEffect(() => {
         if (!isClient) return
 
-        // Contoh data dummy
-        const dummyData: Transaction[] = [
-            {
-                id: "1",
-                date: "2025-02-25",
-                product: "Indomie Goreng",
-                quantity: 2,
-                total: 50000
-            },
-            {
-                id: "2",
-                date: "2025-02-25",
-                product: "Teh Pucuk",
-                quantity: 3,
-                total: 15000
-            },
-            {
-                id: "3",
-                date: "2025-02-24",
-                product: "Beras 5kg",
-                quantity: 1,
-                total: 75000
-            },
-        ]
-        setTransactions(dummyData)
+        const fetchData = async () => {
+            try {
+                const response = await fetch('/api/dashboard/transaction')
+                const data = await response.json()
+                setTransactions(data.transactions)
+                setSummary(data.summary)
+            } catch (error) {
+                console.error('Error:', error)
+            } finally {
+                setIsLoading(false)
+            }
+        }
 
-        // Update summary (contoh)
-        setSummary({
-            today: 65000,    // Total hari ini
-            thisWeek: 140000, // Total minggu ini
-            thisMonth: 500000 // Total bulan ini
-        })
-    }, [])
+        fetchData()
+    }, [isClient])
 
     const columns: ColumnDef<Transaction>[] = [
         {
             accessorKey: "date",
             header: "Tanggal",
             cell: ({ row }) => {
-                // Pindah format tanggal ke client-side
                 if (typeof window === 'undefined') return row.original.date
                 return format(new Date(row.original.date), "dd MMMM yyyy", { locale: id })
             }
         },
         {
-            accessorKey: "product",
-            header: "Produk"
+            accessorKey: "metode",
+            header: "Metode Pembayaran"
         },
         {
-            accessorKey: "quantity",
-            header: "Jumlah"
+            accessorKey: "status",
+            header: "Status"
         },
         {
             accessorKey: "total",
             header: "Total",
             cell: ({ row }) => `Rp ${row.original.total.toLocaleString("id-ID")}`
+        },
+        {
+            id: "actions",
+            header: "Aksi",
+            cell: ({ row }) => {
+                return (
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setSelectedId(row.original.id)}
+                    >
+                        <Eye className="h-4 w-4" />
+                    </Button>
+                )
+            }
         }
     ]
 
-    if (!isClient) {
+    if (!isClient || isLoading) {
         return <div>Loading...</div>
     }
 
     return (
         <div className="p-6 space-y-6">
             <h1 className="text-3xl font-bold">Transaksi</h1>
-
             <SummaryCard summary={summary} />
-
             <div>
                 <h2 className="text-2xl font-bold mb-4">Daftar Transaksi</h2>
                 <DataTable columns={columns} data={transactions} />
             </div>
+            <DetailPesanan
+                isOpen={!!selectedId}
+                onClose={() => setSelectedId(null)}
+                transactionId={selectedId || ""}
+            />
         </div>
     )
 }
