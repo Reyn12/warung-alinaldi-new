@@ -24,7 +24,7 @@ export async function POST(request: Request) {
             success: true,
             url: response.url
         })
-    } catch (error) {
+    } catch (_error) {
         return NextResponse.json(
             { error: 'Gagal upload gambar' },
             { status: 500 }
