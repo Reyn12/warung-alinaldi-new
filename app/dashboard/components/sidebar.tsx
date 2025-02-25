@@ -11,6 +11,7 @@ import {
     FaBars
 } from 'react-icons/fa'
 import { usePathname } from 'next/navigation'
+import Link from 'next/link'
 
 interface SidebarItem {
     icon: React.ReactNode
@@ -21,7 +22,7 @@ interface SidebarItem {
 const sidebarItems: SidebarItem[] = [
     { icon: <FaHome size={20} />, text: 'Dashboard', path: '/dashboard' },
     { icon: <FaBox size={20} />, text: 'Produk', path: '/dashboard/products' },
-    { icon: <FaShoppingCart size={20} />, text: 'Transaksi', path: '/dashboard/transactions' },
+    { icon: <FaShoppingCart size={20} />, text: 'Transaksi', path: '/dashboard/transaction' },
     { icon: <FaUsers size={20} />, text: 'Pelanggan', path: '/dashboard/customers' },
 ]
 
@@ -82,8 +83,8 @@ export default function Sidebar({ onLogout, isMobileMenuOpen, onMobileMenuClose 
 
             {/* Navigation */}
             <nav className="flex-1 mt-6 space-y-2">
-                {sidebarItems.map((item, index) => (
-                    <a
+            {sidebarItems.map((item, index) => (
+                    <Link
                         key={index}
                         href={item.path}
                         onClick={handleMenuClick}
@@ -97,7 +98,7 @@ export default function Sidebar({ onLogout, isMobileMenuOpen, onMobileMenuClose 
                         {!isCollapsed && (
                             <span className="text-sm font-medium">{item.text}</span>
                         )}
-                    </a>
+                    </Link>
                 ))}
             </nav>
 
