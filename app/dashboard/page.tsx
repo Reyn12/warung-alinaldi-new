@@ -6,6 +6,7 @@ import { motion } from 'framer-motion'
 import dynamic from 'next/dynamic'
 import Cart from './components/cart/Cart'
 import toast from 'react-hot-toast'
+import { useCallback } from 'react'
 
 // Interface untuk tipe produk
 interface Product {
@@ -41,7 +42,7 @@ const Dashboard = () => {
     const [categories, setCategories] = useState<any[]>([])
     const [selectedCategory, setSelectedCategory] = useState('Semua Produk')
 
-    const addToCart = (product: Product) => {
+    const addToCart = useCallback((product: Product) => {
         setCart(currentCart => {
             const existingItem = currentCart.find(item => item.id === product.id)
             if (existingItem) {
@@ -53,7 +54,7 @@ const Dashboard = () => {
             }
             return [...currentCart, { ...product, quantity: 1 }]
         })
-    }
+    }, [])
 
     // Tambah useEffect buat update localStorage tiap cart berubah
     useEffect(() => {
