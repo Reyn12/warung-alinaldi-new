@@ -17,8 +17,9 @@ interface Product {
     stok: number
     gambar_url: string
     tanggal_kadaluarsa: string
+    lokasi_brg: string
     created_at: string
-    kode_produk: number
+    kode_produk: string
     categories?: { nama: string }
 }
 
@@ -95,12 +96,12 @@ const Dashboard = () => {
                 // Coba cari produk
                 const product = products.find(p => {
                     console.log('Comparing:', {
-                        scanned: +barcodeBuffer,
+                        scanned: barcodeBuffer.trim(),
                         database: p.kode_produk,
-                        match: p.kode_produk === +barcodeBuffer
-                    })
-                    return p.kode_produk === +barcodeBuffer
-                })
+                        match: p.kode_produk === barcodeBuffer.trim()
+                    });
+                    return p.kode_produk === barcodeBuffer.trim();
+                });
 
                 if (product) {
                     console.log('Found product:', product)

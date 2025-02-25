@@ -14,7 +14,8 @@ interface CartItem {
     gambar_url: string
     tanggal_kadaluarsa: string
     created_at: string
-    kode_produk: number
+    kode_produk: string
+    lokasi_brg: string
     quantity: number
 }
 
