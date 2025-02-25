@@ -69,7 +69,8 @@ export default function ProductsPage() {
 
     // Filter produk berdasarkan pencarian
     const filteredProducts = products.filter(product =>
-        product.nama.toLowerCase().includes(searchQuery.toLowerCase())
+        product.nama.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.kode_produk.toString().includes(searchQuery)
     )
 
     // Handler untuk tombol edit

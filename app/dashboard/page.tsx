@@ -186,7 +186,8 @@ const Dashboard = () => {
 
     const filteredProducts = products.filter(product => {
         const matchCategory = selectedCategory === 'Semua Produk' || product.categories?.nama === selectedCategory
-        const matchSearch = product.nama.toLowerCase().includes(searchQuery.toLowerCase())
+        const matchSearch = product.nama.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                           product.kode_produk.toString().includes(searchQuery)
         return matchCategory && matchSearch
     })
 
