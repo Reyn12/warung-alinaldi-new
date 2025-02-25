@@ -12,7 +12,8 @@ import {
     FaDollarSign,
     FaWarehouse,
     FaCalendarAlt,
-    FaTrash
+    FaTrash,
+    FaMapMarkerAlt,
 } from 'react-icons/fa';
 
 
@@ -31,6 +32,7 @@ interface Product {
     tanggal_kadaluarsa: string;
     created_at: string;
     kode_produk: string;
+    lokasi_brg: string;
 }
 
 interface EditProdukProps {
@@ -48,6 +50,7 @@ interface FormData {
     kategori_id: number;
     gambar_url: File | string;
     tanggal_kadaluarsa: string;
+    lokasi_brg: string;
 }
 
 
@@ -258,6 +261,21 @@ export default function EditProduk({ isOpen, onClose, selectedProduct, categorie
                                                 className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                             />
                                             {errors.tanggal_kadaluarsa && <p className="text-red-500 text-sm mt-1">{errors.tanggal_kadaluarsa.message}</p>}
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <div className="flex items-center gap-2">
+                                                <FaMapMarkerAlt className="text-gray-500" />
+                                                <label className="block text-sm font-medium text-gray-700">Lokasi Barang</label>
+                                            </div>
+                                            <input
+                                                type="text"
+                                                {...register('lokasi_brg', { required: 'Lokasi barang wajib diisi' })}
+                                                className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                placeholder="Masukkan lokasi barang"
+                                                defaultValue={selectedProduct?.lokasi_brg || ''}
+                                            />
+                                            {errors.lokasi_brg && <p className="text-red-500 text-sm mt-1">{errors.lokasi_brg.message}</p>}
                                         </div>
                                     </div>
 

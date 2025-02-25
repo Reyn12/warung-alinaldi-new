@@ -17,6 +17,7 @@ interface Product {
     tanggal_kadaluarsa: string;
     created_at: string;
     kode_produk: string;
+    lokasi_brg: string;
     categories: {
         id: number;
         nama: string;
@@ -209,6 +210,10 @@ export default function ProductsPage() {
                                     <div className="flex justify-between items-center">
                                         <span className="text-sm">Kadaluarsa</span>
                                         <span className="font-medium">{new Date(product.tanggal_kadaluarsa).toLocaleDateString()}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-sm">Lokasi Barang</span>
+                                        <span className="font-medium">{product.lokasi_brg}</span>
                                     </div>
                                 </div>
                             </div>

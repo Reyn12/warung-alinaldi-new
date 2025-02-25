@@ -38,6 +38,7 @@ export async function GET(request: Request) {
                 tanggal_kadaluarsa,
                 created_at,
                 kode_produk,
+                lokasi_brg,
                 categories (
                     id,
                     nama
@@ -79,6 +80,7 @@ export async function POST(request: Request) {
             harga,
             stok,
             kategori_id,
+            lokasi_brg,
             gambar_url,
             tanggal_kadaluarsa
         } = formData
@@ -89,6 +91,7 @@ export async function POST(request: Request) {
                 {
                     nama,
                     kode_produk,
+                    lokasi_brg,
                     harga,
                     stok,
                     kategori_id,
@@ -128,6 +131,7 @@ export async function PUT(request: Request) {
             harga,
             stok,
             kategori_id,
+            lokasi_brg,
             gambar_url,
             tanggal_kadaluarsa
         } = formData
@@ -137,6 +141,7 @@ export async function PUT(request: Request) {
             .update({
                 nama,
                 kode_produk,
+                lokasi_brg,
                 harga,
                 stok,
                 kategori_id,

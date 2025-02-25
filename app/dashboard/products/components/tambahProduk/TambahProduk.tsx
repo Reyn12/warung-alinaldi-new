@@ -11,7 +11,8 @@ import {
     FaBarcode,
     FaDollarSign,
     FaWarehouse,
-    FaCalendarAlt
+    FaCalendarAlt,
+    FaMapMarkerAlt,
 } from 'react-icons/fa';
 
 // Define category interface based on the categories table
@@ -34,6 +35,7 @@ interface FormData {
     kategori_id: number;
     gambar_url: File | string;
     tanggal_kadaluarsa: string;
+    lokasi_brg: string;
 }
 
 export default function TambahProduk({ isOpen, onClose, categories }: TambahProdukProps) {
@@ -238,6 +240,21 @@ export default function TambahProduk({ isOpen, onClose, categories }: TambahProd
                                                 </select>
                                                 {errors.kategori_id && <p className="text-red-500 text-sm">{errors.kategori_id.message}</p>}
                                             </div>
+
+                                            {/* Lokasi Brg */}
+                                            <div className="space-y-2">
+                                                <div className="flex items-center gap-2">
+                                                    <FaMapMarkerAlt className="text-gray-500" />
+                                                    <label className="block text-sm font-medium text-gray-700">Lokasi Barang</label>
+                                                </div>
+                                                <input
+                                                    type="text"
+                                                    {...register('lokasi_brg', { required: 'Lokasi barang wajib diisi' })}
+                                                    className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none"
+                                                    placeholder="Masukkan lokasi barang"
+                                                />
+                                                {errors.lokasi_brg && <p className="text-red-500 text-sm">{errors.lokasi_brg.message}</p>}
+                                            </div>
                                         </div>
                                     </div>
 
@@ -280,9 +297,8 @@ export default function TambahProduk({ isOpen, onClose, categories }: TambahProd
                                         <button
                                             type="submit"
                                             disabled={isLoading}
-                                            className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors ${
-                                                isLoading ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
-                                            }`}
+                                            className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors ${isLoading ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
+                                                }`}
                                         >
                                             {isLoading ? 'Menyimpan...' : 'Simpan'}
                                         </button>
