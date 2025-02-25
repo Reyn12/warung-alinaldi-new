@@ -1,11 +1,23 @@
 import { createServerClient } from '@/lib/supabase'
 import { NextResponse } from 'next/server'
 
+// Definisikan tipe untuk item di cart
+interface CartItem {
+  id: string;
+  quantity: number;
+  harga: number;
+}
+
 export async function POST(request: Request) {
   try {
     const supabase = await createServerClient()
     const body = await request.json()
-    const { cart, totalAmount, paymentMethod } = body
+    // Tambahkan tipe ke destructuring body
+    const { cart, totalAmount, paymentMethod }: { 
+      cart: CartItem[], 
+      totalAmount: number, 
+      paymentMethod: string 
+    } = body
 
     // Insert ke table transactions
     const { data: transactionData, error: transactionError } = await supabase
@@ -20,8 +32,8 @@ export async function POST(request: Request) {
 
     if (transactionError) throw transactionError
 
-    // Insert transaction items
-    const transactionItems = cart.map((item: any) => ({
+    // Insert transaction items, pakai tipe CartItem
+    const transactionItems = cart.map((item: CartItem) => ({
       transaksi_id: transactionData.id,
       produk_id: item.id,
       jumlah: item.quantity,
