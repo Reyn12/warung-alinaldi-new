@@ -250,7 +250,7 @@ const Dashboard = () => {
                             <FaChevronRight className="text-gray-600" />
                         </button>
 
-                        <div className="category-scroll flex gap-2 mb-6 overflow-x-auto custom-scrollbar pb-2 px-10">
+                        <div className="category-scroll flex gap-2 mb-6 overflow-x-auto custom-scrollbar pb-2 px-12 mx-2">
                             <button
                                 key="all"
                                 onClick={() => setSelectedCategory('Semua Produk')}
