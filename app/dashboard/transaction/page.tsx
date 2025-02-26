@@ -137,7 +137,7 @@ export default function TransactionPage() {
     }
 
     return (
-        <div className="p-6 space-y-8 max-w-7xl mx-auto bg-gradient-to-b from-white to-gray-50 min-h-screen">
+        <div className="p-6 rounded-lg space-y-8 max-w-7xl mx-auto bg-gradient-to-b from-white to-gray-50 min-h-screen">
             <div className="flex justify-between items-center border-b pb-4">
                 <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
                     Transaksi
