@@ -24,34 +24,39 @@ const PembayaranModal = ({ isOpen, onClose, onSelectMethod, totalAmount, cart, o
         setStep('konfirmasi')
     }
 
+    const handleSelectMethod = (method: 'qris' | 'tunai') => {
+        setSelectedMethod(method)
+        onSelectMethod(method)
+    }
+
     const handleProcessOrder = async () => {
         try {
-          const response = await fetch('/api/dashboard/orders', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              cart,
-              totalAmount,
-              paymentMethod: selectedMethod
+            const response = await fetch('/api/dashboard/orders', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    cart,
+                    totalAmount,
+                    paymentMethod: selectedMethod
+                })
             })
-          })
-      
-          const data = await response.json()
-          
-          if (data.success) {
-            localStorage.removeItem('cart')
-            onProcessOrder() // Panggil fungsi yang dikasih dari parent
-            onClose()       // Tutup modal
-            window.location.reload()
-          } else {
-            alert('Gagal memproses pesanan')
-          }
+
+            const data = await response.json()
+
+            if (data.success) {
+                localStorage.removeItem('cart')
+                onProcessOrder() // Panggil fungsi yang dikasih dari parent
+                onClose()       // Tutup modal
+                window.location.reload()
+            } else {
+                alert('Gagal memproses pesanan')
+            }
         } catch (error) {
-          alert('Terjadi kesalahan')
+            alert('Terjadi kesalahan')
         }
-      }
+    }
 
     return (
         <AnimatePresence>
@@ -134,12 +139,11 @@ const PembayaranModal = ({ isOpen, onClose, onSelectMethod, totalAmount, cart, o
                                     <motion.button
                                         whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}
-                                        onClick={() => onSelectMethod('qris')}
-                                        className={`flex flex-col items-center justify-center p-6 border-2 ${
-                                            selectedMethod === 'qris' 
-                                                ? 'border-blue-500 bg-blue-50' 
+                                        onClick={() => handleSelectMethod('qris')}
+                                        className={`flex flex-col items-center justify-center p-6 border-2 ${selectedMethod === 'qris'
+                                                ? 'border-blue-500 bg-blue-50'
                                                 : 'border-gray-200 hover:border-blue-500 hover:bg-blue-50'
-                                        } rounded-xl transition-all`}
+                                            } rounded-xl transition-all`}
                                     >
                                         <FaQrcode className="text-4xl mb-3 text-blue-500" />
                                         <span className="font-semibold">QRIS</span>
@@ -148,12 +152,11 @@ const PembayaranModal = ({ isOpen, onClose, onSelectMethod, totalAmount, cart, o
                                     <motion.button
                                         whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}
-                                        onClick={() => onSelectMethod('tunai')}
-                                        className={`flex flex-col items-center justify-center p-6 border-2 ${
-                                            selectedMethod === 'tunai' 
-                                                ? 'border-blue-500 bg-blue-50' 
+                                        onClick={() => handleSelectMethod('tunai')}
+                                        className={`flex flex-col items-center justify-center p-6 border-2 ${selectedMethod === 'tunai'
+                                                ? 'border-blue-500 bg-blue-50'
                                                 : 'border-gray-200 hover:border-blue-500 hover:bg-blue-50'
-                                        } rounded-xl transition-all`}
+                                            } rounded-xl transition-all`}
                                     >
                                         <FaMoneyBillWave className="text-4xl mb-3 text-blue-500" />
                                         <span className="font-semibold">TUNAI</span>
