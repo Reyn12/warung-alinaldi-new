@@ -22,8 +22,7 @@ interface SidebarItem {
 const sidebarItems: SidebarItem[] = [
     { icon: <FaHome size={20} />, text: 'Dashboard', path: '/dashboard' },
     { icon: <FaBox size={20} />, text: 'Produk', path: '/dashboard/products' },
-    { icon: <FaShoppingCart size={20} />, text: 'Transaksi', path: '/dashboard/transaction' },
-    { icon: <FaUsers size={20} />, text: 'Pelanggan', path: '/dashboard/customers' },
+    { icon: <FaShoppingCart size={20} />, text: 'Transaksi', path: '/dashboard/transaction' }
 ]
 
 interface SidebarProps {
