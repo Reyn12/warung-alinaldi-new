@@ -42,6 +42,8 @@ const Dashboard = () => {
     const [isLoading, setIsLoading] = useState(true)
     const [categories, setCategories] = useState<any[]>([])
     const [selectedCategory, setSelectedCategory] = useState('Semua Produk')
+    const [currentPage, setCurrentPage] = useState(1)
+    const [itemsPerPage] = useState(12) // Jumlah item per halaman
 
     const addToCart = useCallback((product: Product) => {
         setCart(currentCart => {
@@ -182,6 +184,11 @@ const Dashboard = () => {
         fetchData()
     }, [])
 
+    // Reset halaman ketika kategori atau search berubah
+    useEffect(() => {
+        setCurrentPage(1)
+    }, [selectedCategory, searchQuery])
+
     if (!isClient) {
         return <div>Loading...</div>
     }
@@ -189,9 +196,24 @@ const Dashboard = () => {
     const filteredProducts = products.filter(product => {
         const matchCategory = selectedCategory === 'Semua Produk' || product.categories?.nama === selectedCategory
         const matchSearch = product.nama.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           product.kode_produk.toString().includes(searchQuery)
+            product.kode_produk.toString().includes(searchQuery)
         return matchCategory && matchSearch
     })
+
+    // Pagination logic
+    const totalPages = Math.ceil(filteredProducts.length / itemsPerPage)
+    const indexOfLastItem = currentPage * itemsPerPage
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage
+    const currentItems = filteredProducts.slice(indexOfFirstItem, indexOfLastItem)
+
+    // Pagination controls
+    const paginate = (pageNumber: number) => {
+        if (pageNumber > 0 && pageNumber <= totalPages) {
+            setCurrentPage(pageNumber)
+            // Scroll ke atas untuk UX yang lebih baik
+            window.scrollTo({ top: 0, behavior: 'smooth' })
+        }
+    }
 
     const SkeletonCard = () => (
         <div className="bg-white rounded-lg shadow p-3 animate-pulse">
@@ -201,6 +223,91 @@ const Dashboard = () => {
             <div className="h-8 bg-gray-300 rounded w-full"></div>
         </div>
     )
+
+    // Fungsi untuk render pagination
+    const renderPaginationControls = () => {
+        // Jika total halaman kurang dari 2, gak perlu tampilin pagination
+        if (totalPages <= 1) return null;
+
+        // Generate array of page numbers, maksimal 5 halaman
+        let pageNumbers = [];
+        
+        // Tentukan range halaman yang akan ditampilkan
+        let startPage = Math.max(1, currentPage - 2);
+        let endPage = Math.min(totalPages, startPage + 4);
+        
+        // Sesuaikan startPage jika endPage sudah di maksimum
+        if (endPage === totalPages) {
+            startPage = Math.max(1, endPage - 4);
+        }
+        
+        for (let i = startPage; i <= endPage; i++) {
+            pageNumbers.push(i);
+        }
+
+        return (
+            <div className="flex items-center justify-center mt-6 mb-4">
+                {/* Previous button */}
+                <button
+                    onClick={() => paginate(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="px-3 py-1 mr-2 rounded bg-gray-200 disabled:opacity-50 hover:bg-gray-300"
+                >
+                    <FaChevronLeft />
+                </button>
+
+                {/* First page button (if not in view) */}
+                {startPage > 1 && (
+                    <>
+                        <button
+                            onClick={() => paginate(1)}
+                            className="px-3 py-1 mx-1 rounded hover:bg-gray-200"
+                        >
+                            1
+                        </button>
+                        {startPage > 2 && <span className="mx-1">...</span>}
+                    </>
+                )}
+
+                {/* Page numbers */}
+                {pageNumbers.map(number => (
+                    <button
+                        key={number}
+                        onClick={() => paginate(number)}
+                        className={`px-3 py-1 mx-1 rounded ${
+                            currentPage === number 
+                                ? 'bg-blue-500 text-white' 
+                                : 'hover:bg-gray-200'
+                        }`}
+                    >
+                        {number}
+                    </button>
+                ))}
+
+                {/* Last page button (if not in view) */}
+                {endPage < totalPages && (
+                    <>
+                        {endPage < totalPages - 1 && <span className="mx-1">...</span>}
+                        <button
+                            onClick={() => paginate(totalPages)}
+                            className="px-3 py-1 mx-1 rounded hover:bg-gray-200"
+                        >
+                            {totalPages}
+                        </button>
+                    </>
+                )}
+
+                {/* Next button */}
+                <button
+                    onClick={() => paginate(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className="px-3 py-1 ml-2 rounded bg-gray-200 disabled:opacity-50 hover:bg-gray-300"
+                >
+                    <FaChevronRight />
+                </button>
+            </div>
+        );
+    };
 
     return (
         <div className="relative min-h-screen bg-gray-100 p-4">
@@ -255,8 +362,8 @@ const Dashboard = () => {
                                 key="all"
                                 onClick={() => setSelectedCategory('Semua Produk')}
                                 className={`px-4 py-2 my-4 rounded-full whitespace-nowrap transition-colors ${selectedCategory === 'Semua Produk'
-                                        ? 'bg-blue-100 text-blue-600'
-                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                    ? 'bg-blue-100 text-blue-600'
+                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                     }`}
                             >
                                 Semua Produk
@@ -266,8 +373,8 @@ const Dashboard = () => {
                                     key={category.id}
                                     onClick={() => setSelectedCategory(category.nama)}
                                     className={`px-4 py-2 my-4 rounded-full whitespace-nowrap transition-colors ${selectedCategory === category.nama
-                                            ? 'bg-blue-100 text-blue-600'
-                                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                        ? 'bg-blue-100 text-blue-600'
+                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                         }`}
                                 >
                                     {category.nama}
@@ -275,6 +382,14 @@ const Dashboard = () => {
                             ))}
                         </div>
                     </div>
+
+                    {/* Info total produk dan halaman aktif */}
+                    {!isLoading && filteredProducts.length > 0 && (
+                        <div className="flex justify-between items-center mb-4 text-sm text-gray-600">
+                            <p>Menampilkan {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, filteredProducts.length)} dari {filteredProducts.length} produk</p>
+                            <p>Halaman {currentPage} dari {totalPages}</p>
+                        </div>
+                    )}
 
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                         {isLoading ? (
@@ -288,15 +403,15 @@ const Dashboard = () => {
                                 <p className="text-sm">Coba pilih kategori lain atau ubah kata kunci pencarian</p>
                             </div>
                         ) : (
-                            filteredProducts.map((product) => {
+                            currentItems.map((product) => {
                                 const cartItem = cart.find(item => item.id === product.id)
                                 const quantity = cartItem ? cartItem.quantity : 0
 
                                 return (
                                     <motion.div
                                         key={product.id}
-                                        initial={{ x: -50 }}
-                                        animate={{ x: 0 }}
+                                        initial={{ x: -20, opacity: 0 }}
+                                        animate={{ x: 0, opacity: 1 }}
                                         whileHover={{ scale: 1.03 }}
                                         transition={{ duration: 0.2 }}
                                         className="bg-white rounded-lg shadow p-3"
@@ -341,6 +456,9 @@ const Dashboard = () => {
                             })
                         )}
                     </div>
+
+                    {/* Pagination controls */}
+                    {renderPaginationControls()}
                 </div>
 
                 {/* Komponen Cart */}
