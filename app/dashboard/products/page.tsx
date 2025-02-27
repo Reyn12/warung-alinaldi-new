@@ -4,9 +4,20 @@ import { motion } from 'framer-motion'
 import { RiAddFill, RiSearchLine, RiEditLine, RiDeleteBinLine, RiArrowLeftSLine, RiArrowRightSLine } from 'react-icons/ri'
 import { MdOutlineInventory2 } from 'react-icons/md'
 import Image from 'next/image'
-import TambahProduk from './components/tambahProduk/TambahProduk'
-import EditProduk from './components/editProduk/EditProduk'
 import toast from 'react-hot-toast'
+import dynamic from 'next/dynamic'
+
+
+// Import komponen dengan dynamic import dan opsi ssr: false
+const TambahProduk = dynamic(
+    () => import('./components/tambahProduk/TambahProduk'),
+    { ssr: false }
+)
+
+const EditProduk = dynamic(
+    () => import('./components/editProduk/EditProduk'),
+    { ssr: false }
+)
 
 interface Product {
     id: number;
@@ -38,7 +49,7 @@ export default function ProductsPage() {
     const [isEditModalOpen, setIsEditModalOpen] = useState(false)
     const [categories, setCategories] = useState<Category[]>([])
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
-    
+
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1)
     const [itemsPerPage, setItemsPerPage] = useState(8)
@@ -150,11 +161,10 @@ export default function ProductsPage() {
                 <button
                     key={number}
                     onClick={() => goToPage(number)}
-                    className={`px-3 py-1 mx-1 rounded-md ${
-                        currentPage === number 
-                            ? 'bg-indigo-600 text-white' 
+                    className={`px-3 py-1 mx-1 rounded-md ${currentPage === number
+                            ? 'bg-indigo-600 text-white'
                             : 'bg-white text-gray-700 hover:bg-gray-100'
-                    }`}
+                        }`}
                 >
                     {number}
                 </button>
@@ -169,11 +179,10 @@ export default function ProductsPage() {
                         <button
                             key={number}
                             onClick={() => goToPage(number)}
-                            className={`px-3 py-1 mx-1 rounded-md ${
-                                currentPage === number 
-                                    ? 'bg-indigo-600 text-white' 
+                            className={`px-3 py-1 mx-1 rounded-md ${currentPage === number
+                                    ? 'bg-indigo-600 text-white'
                                     : 'bg-white text-gray-700 hover:bg-gray-100'
-                            }`}
+                                }`}
                         >
                             {number}
                         </button>
@@ -204,11 +213,10 @@ export default function ProductsPage() {
                         <button
                             key={number}
                             onClick={() => goToPage(number)}
-                            className={`px-3 py-1 mx-1 rounded-md ${
-                                currentPage === number 
-                                    ? 'bg-indigo-600 text-white' 
+                            className={`px-3 py-1 mx-1 rounded-md ${currentPage === number
+                                    ? 'bg-indigo-600 text-white'
                                     : 'bg-white text-gray-700 hover:bg-gray-100'
-                            }`}
+                                }`}
                         >
                             {number}
                         </button>
@@ -231,11 +239,10 @@ export default function ProductsPage() {
                     <button
                         key={number}
                         onClick={() => goToPage(number)}
-                        className={`px-3 py-1 mx-1 rounded-md ${
-                            currentPage === number 
-                                ? 'bg-indigo-600 text-white' 
+                        className={`px-3 py-1 mx-1 rounded-md ${currentPage === number
+                                ? 'bg-indigo-600 text-white'
                                 : 'bg-white text-gray-700 hover:bg-gray-100'
-                        }`}
+                            }`}
                     >
                         {number}
                     </button>
@@ -359,11 +366,10 @@ export default function ProductsPage() {
                                     </div>
                                     <div className="flex justify-between items-center">
                                         <span className="text-sm font-medium text-gray-500">Stok</span>
-                                        <span className={`font-medium px-2 py-0.5 rounded ${
-                                            product.stok < 10 
-                                                ? 'bg-red-50 text-red-600' 
+                                        <span className={`font-medium px-2 py-0.5 rounded ${product.stok < 10
+                                                ? 'bg-red-50 text-red-600'
                                                 : 'bg-blue-50 text-blue-600'
-                                        }`}>
+                                            }`}>
                                             {product.stok} unit
                                         </span>
                                     </div>
@@ -389,20 +395,19 @@ export default function ProductsPage() {
                         <button
                             onClick={() => goToPage(currentPage > 1 ? currentPage - 1 : 1)}
                             disabled={currentPage === 1}
-                            className={`flex items-center gap-1 px-4 py-2 ${
-                                currentPage === 1 
-                                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                            className={`flex items-center gap-1 px-4 py-2 ${currentPage === 1
+                                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                                     : 'bg-white text-indigo-600 hover:bg-gray-50'
-                            }`}
+                                }`}
                         >
                             <RiArrowLeftSLine className="text-lg" />
                             <span>Prev</span>
                         </button>
-                        
+
                         <div className="hidden md:flex">
                             {renderPaginationButtons()}
                         </div>
-                        
+
                         <div className="md:hidden flex items-center bg-white px-3 py-2">
                             <select
                                 value={currentPage}
@@ -416,21 +421,20 @@ export default function ProductsPage() {
                                 ))}
                             </select>
                         </div>
-                        
+
                         <button
                             onClick={() => goToPage(currentPage < totalPages ? currentPage + 1 : totalPages)}
                             disabled={currentPage === totalPages}
-                            className={`flex items-center gap-1 px-4 py-2 ${
-                                currentPage === totalPages 
-                                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                            className={`flex items-center gap-1 px-4 py-2 ${currentPage === totalPages
+                                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                                     : 'bg-white text-indigo-600 hover:bg-gray-50'
-                            }`}
+                                }`}
                         >
                             <span>Next</span>
                             <RiArrowRightSLine className="text-lg" />
                         </button>
                     </div>
-                    
+
                     <div className="flex items-center gap-2 text-sm text-gray-500 bg-white px-4 py-2 rounded-lg shadow-md">
                         <span>Menampilkan</span>
                         <select

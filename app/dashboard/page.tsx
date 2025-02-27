@@ -1,6 +1,8 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { FaSearch, FaBarcode, FaChevronLeft, FaChevronRight, FaBoxOpen, FaShoppingCart, FaTimes } from 'react-icons/fa'
+import { FiClock } from 'react-icons/fi'
+
 import { FiMinus, FiPlus } from 'react-icons/fi'
 import { motion } from 'framer-motion'
 import dynamic from 'next/dynamic'
@@ -81,21 +83,21 @@ const Dashboard = () => {
 
         const handleBarcodeScan = (event: KeyboardEvent) => {
             const currentTime = Date.now();
-        
+
             // Reset buffer jika terlalu lama antara keypress
             if (currentTime - lastKeyTime > 100) {
                 barcodeBuffer = '';
             }
-        
+
             // Update waktu terakhir
             lastKeyTime = currentTime;
-        
+
             // Tambahkan karakter ke buffer
             if (event.key !== 'Enter') {
                 barcodeBuffer += event.key;
                 return;
             }
-        
+
             // Proses barcode saat Enter
             if (barcodeBuffer) {
                 // Normalisasi barcode: hapus spasi, karakter tambahan, dan ubah ke lowercase
@@ -103,14 +105,14 @@ const Dashboard = () => {
                 console.log('Raw barcode buffer:', barcodeBuffer);
                 console.log('Scanned code (after normalization):', scannedCode);
                 console.log('Tipe data scanned code:', typeof scannedCode);
-        
+
                 // Log semua produk untuk debugging
                 console.log('All products in database:', products.map(p => ({
                     nama: p.nama,
                     kode_produk: p.kode_produk,
                     type: typeof p.kode_produk
                 })));
-        
+
                 // Coba cari produk dengan log detail
                 const product = products.find(p => {
                     console.log('Checking product:', {
@@ -118,7 +120,7 @@ const Dashboard = () => {
                         kode_produk: p.kode_produk,
                         scannedCode: scannedCode
                     });
-        
+
                     // Normalisasi kode_produk untuk konsistensi
                     if (typeof p.kode_produk === 'string') {
                         // Jika string, pecah berdasarkan koma dan normalisasi setiap kode
@@ -134,7 +136,7 @@ const Dashboard = () => {
                     }
                     return false;
                 });
-        
+
                 if (product) {
                     console.log('Found product:', product);
                     addToCart(product);
@@ -195,16 +197,16 @@ const Dashboard = () => {
                     fetch('/api/dashboard/product'),
                     fetch('/api/dashboard/product?type=categories')
                 ]);
-    
+
                 const productsResult = await productsResponse.json();
                 const categoriesResult = await categoriesResponse.json();
-    
+
                 if (productsResult.status === 'success') {
                     setProducts(productsResult.data);
-                    
+
                     // Log semua produk untuk debugging
                     console.log('All products fetched:', productsResult.data);
-    
+
                     // Cari dan log produk "Sabun Shinzui" secara spesifik
                     const shinzuiProduct = productsResult.data.find(
                         (product: Product) => product.nama === 'Sabun Shinzui'
@@ -215,7 +217,7 @@ const Dashboard = () => {
                         console.log('Sabun Shinzui not found in fetched products');
                     }
                 }
-    
+
                 if (categoriesResult.status === 'success') {
                     setCategories(categoriesResult.data);
                     console.log('Categories fetched:', categoriesResult.data);
@@ -226,7 +228,7 @@ const Dashboard = () => {
                 setIsLoading(false);
             }
         };
-    
+
         fetchData();
     }, []);
 
@@ -240,17 +242,17 @@ const Dashboard = () => {
     }
 
     const filteredProducts = products.filter(product => {
-        const matchesSearch = 
+        const matchesSearch =
             product.nama.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            (typeof product.kode_produk === 'string' && 
+            (typeof product.kode_produk === 'string' &&
                 product.kode_produk.toLowerCase().includes(searchQuery.toLowerCase())) ||
-            (Array.isArray(product.kode_produk) && 
+            (Array.isArray(product.kode_produk) &&
                 product.kode_produk.some(code => code.toLowerCase().includes(searchQuery.toLowerCase())))
-        
+
         // Filter kategori juga kalau diperlukan
-        const matchesCategory = selectedCategory === 'Semua Produk' || 
+        const matchesCategory = selectedCategory === 'Semua Produk' ||
             (product.categories && product.categories.nama === selectedCategory)
-        
+
         return matchesSearch && matchesCategory
     })
 
@@ -466,9 +468,9 @@ const Dashboard = () => {
                                         key={product.id}
                                         initial={{ x: -20, opacity: 0 }}
                                         animate={{ x: 0, opacity: 1 }}
-                                        whileHover={{ scale: 1.03 }}
+                                        whileHover={{ scale: 1.03, y: -5 }}
                                         transition={{ duration: 0.2 }}
-                                        className="bg-white rounded-xl shadow-md hover:shadow-lg p-4 border border-gray-100 overflow-hidden transition-all duration-300"
+                                        className="bg-gradient-to-br from-white to-blue-50 rounded-xl shadow-md hover:shadow-xl p-4 border border-blue-100 overflow-hidden transition-all duration-300"
                                     >
                                         <div className="relative overflow-hidden rounded-lg mb-3">
                                             <motion.img
@@ -478,40 +480,53 @@ const Dashboard = () => {
                                                 alt={product.nama}
                                                 className="w-full h-44 object-cover rounded-lg"
                                             />
-                                            <div className="absolute top-1 right-1">
-                                                <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded-full shadow-sm">
+                                            <div className="absolute top-2 right-2">
+                                                <span className="bg-gradient-to-r from-blue-600 to-blue-500 text-white text-xs px-3 py-1 rounded-full shadow-md font-medium">
                                                     Tersedia
                                                 </span>
                                             </div>
                                         </div>
 
                                         <h3 className="font-semibold text-gray-800 mb-1 truncate text-base">{product.nama}</h3>
-                                        <p className="text-blue-600 font-bold text-lg mb-3">Rp {product.harga.toLocaleString()}</p>
+                                        <p className="text-blue-600 font-bold text-lg mb-3">
+                                            <span className="text-sm font-normal text-gray-500 mr-1">Rp</span>
+                                            {product.harga.toLocaleString()}
+                                        </p>
 
                                         {quantity > 0 ? (
-                                            <div className="flex items-center justify-between mb-1 bg-gray-50 rounded-lg p-1.5">
-                                                <button
+                                            <div className="flex items-center justify-between mb-1 bg-blue-50 rounded-lg p-1.5 border border-blue-100">
+                                                <motion.button
+                                                    whileTap={{ scale: 0.9 }}
                                                     onClick={() => updateQuantity(product.id, quantity - 1)}
                                                     disabled={quantity <= 0}
-                                                    className="w-8 h-8 bg-red-400 rounded-full flex items-center justify-center hover:bg-red-500 disabled:opacity-50 disabled:bg-gray-200 transition-colors shadow-sm"
+                                                    className="w-8 h-8 bg-gradient-to-br from-red-400 to-red-500 rounded-full flex items-center justify-center hover:from-red-500 hover:to-red-600 disabled:opacity-50 disabled:bg-gray-200 transition-colors shadow-md"
                                                 >
                                                     <FiMinus className="text-white" />
-                                                </button>
-                                                <span className="text-sm font-medium bg-white px-3 py-1 rounded-full shadow-sm">{quantity}</span>
-                                                <button
+                                                </motion.button>
+                                                <span className="text-sm font-medium bg-white px-4 py-1.5 rounded-full shadow-md border border-blue-100">{quantity}</span>
+                                                <motion.button
+                                                    whileTap={{ scale: 0.9 }}
                                                     onClick={() => updateQuantity(product.id, quantity + 1)}
-                                                    className="w-8 h-8 bg-green-400 rounded-full flex items-center justify-center hover:bg-green-500 transition-colors shadow-sm"
+                                                    className="w-8 h-8 bg-gradient-to-br from-green-400 to-green-500 rounded-full flex items-center justify-center hover:from-green-500 hover:to-green-600 transition-colors shadow-md"
                                                 >
                                                     <FiPlus className="text-white" />
-                                                </button>
+                                                </motion.button>
                                             </div>
                                         ) : (
-                                            <button
+                                            <motion.button
+                                                whileTap={{ scale: 0.95 }}
                                                 onClick={() => addToCart(product)}
-                                                className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-2 rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-300 flex items-center justify-center gap-1 font-medium shadow-sm"
+                                                className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-2.5 rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-300 flex items-center justify-center gap-2 font-medium shadow-md"
                                             >
                                                 <FaShoppingCart className="text-sm" /> Tambah
-                                            </button>
+                                            </motion.button>
+                                        )}
+
+                                        {/* Tambahan badge kadaluarsa jika mendekati */}
+                                        {new Date(product.tanggal_kadaluarsa) < new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) && (
+                                            <div className="mt-2 text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full inline-flex items-center">
+                                                <FiClock className="mr-1" /> Kadaluarsa: {new Date(product.tanggal_kadaluarsa).toLocaleDateString('id-ID')}
+                                            </div>
                                         )}
                                     </motion.div>
                                 )
