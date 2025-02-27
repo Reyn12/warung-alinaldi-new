@@ -47,8 +47,8 @@ const Cart = ({ cart, updateQuantity, removeFromCart }: CartProps) => {
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white w-[350px] min-h-[500px] max-h-[80vh] rounded-lg shadow-lg p-4 flex flex-col border border-gray-100 sticky top-4"
-        >
+            className="bg-white w-full min-h-[500px] max-h-[80vh] rounded-lg shadow-lg p-4 flex flex-col border border-gray-100 sticky top-4"
+            >
             {/* Header */}
             <div className="flex items-center gap-2 mb-4">
                 <FaShoppingCart className="text-blue-600" />

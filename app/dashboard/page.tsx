@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { FaSearch, FaBarcode, FaChevronLeft, FaChevronRight, FaBoxOpen } from 'react-icons/fa'
+import { FaSearch, FaBarcode, FaChevronLeft, FaChevronRight, FaBoxOpen, FaShoppingCart, FaTimes } from 'react-icons/fa'
 import { FiMinus, FiPlus } from 'react-icons/fi'
 import { motion } from 'framer-motion'
 import dynamic from 'next/dynamic'
@@ -44,6 +44,12 @@ const Dashboard = () => {
     const [selectedCategory, setSelectedCategory] = useState('Semua Produk')
     const [currentPage, setCurrentPage] = useState(1)
     const [itemsPerPage] = useState(12) // Jumlah item per halaman
+    const [mobileCartVisible, setMobileCartVisible] = useState(false)
+
+    const toggleMobileCart = () => {
+        setMobileCartVisible(!mobileCartVisible)
+    }
+
 
     const addToCart = useCallback((product: Product) => {
         setCart(currentCart => {
@@ -231,16 +237,16 @@ const Dashboard = () => {
 
         // Generate array of page numbers, maksimal 5 halaman
         let pageNumbers = [];
-        
+
         // Tentukan range halaman yang akan ditampilkan
         let startPage = Math.max(1, currentPage - 2);
         let endPage = Math.min(totalPages, startPage + 4);
-        
+
         // Sesuaikan startPage jika endPage sudah di maksimum
         if (endPage === totalPages) {
             startPage = Math.max(1, endPage - 4);
         }
-        
+
         for (let i = startPage; i <= endPage; i++) {
             pageNumbers.push(i);
         }
@@ -274,11 +280,10 @@ const Dashboard = () => {
                     <button
                         key={number}
                         onClick={() => paginate(number)}
-                        className={`px-3 py-1 mx-1 rounded ${
-                            currentPage === number 
-                                ? 'bg-blue-500 text-white' 
-                                : 'hover:bg-gray-200'
-                        }`}
+                        className={`px-3 py-1 mx-1 rounded ${currentPage === number
+                            ? 'bg-blue-500 text-white'
+                            : 'hover:bg-gray-200'
+                            }`}
                     >
                         {number}
                     </button>
@@ -312,9 +317,9 @@ const Dashboard = () => {
     return (
         <div className="relative min-h-screen bg-gray-100 p-4">
             {/* Konten dashboard */}
-            <div className="flex gap-4">
-                {/* Kolom Kiri */}
-                <div className="w-2/3">
+            <div className="flex flex-col md:flex-row gap-4">
+                {/* Kolom Kiri - Produk */}
+                <div className="w-full md:w-2/3">
                     {/* Filter Cari Produk */}
                     <div className="flex gap-4 mb-4">
                         <div className="flex-1 relative">
@@ -391,16 +396,17 @@ const Dashboard = () => {
                         </div>
                     )}
 
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {/* Card produk */}
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
                         {isLoading ? (
                             Array.from({ length: 8 }).map((_, index) => (
                                 <SkeletonCard key={index} />
                             ))
                         ) : filteredProducts.length === 0 ? (
-                            <div className="col-span-full flex flex-col items-center justify-center py-10 text-gray-500">
-                                <FaBoxOpen className="w-24 h-24 mb-4 opacity-50" />
-                                <p className="text-lg font-medium">Tidak ada produk yang ditemukan</p>
-                                <p className="text-sm">Coba pilih kategori lain atau ubah kata kunci pencarian</p>
+                            <div className="col-span-full flex flex-col items-center justify-center py-12 text-gray-500">
+                                <FaBoxOpen className="w-28 h-28 mb-5 opacity-50 text-gray-400" />
+                                <p className="text-xl font-medium">Tidak ada produk yang ditemukan</p>
+                                <p className="text-sm mt-2">Coba pilih kategori lain atau ubah kata kunci pencarian</p>
                             </div>
                         ) : (
                             currentItems.map((product) => {
@@ -414,43 +420,51 @@ const Dashboard = () => {
                                         animate={{ x: 0, opacity: 1 }}
                                         whileHover={{ scale: 1.03 }}
                                         transition={{ duration: 0.2 }}
-                                        className="bg-white rounded-lg shadow p-3"
+                                        className="bg-white rounded-xl shadow-md hover:shadow-lg p-4 border border-gray-100 overflow-hidden transition-all duration-300"
                                     >
-                                        <motion.img
-                                            whileHover={{ scale: 1.05 }}
-                                            transition={{ duration: 0.2 }}
-                                            src={product.gambar_url}
-                                            alt={product.nama}
-                                            className="w-full h-40 object-cover rounded-lg mb-2"
-                                        />
-                                        <h3 className="font-semibold">{product.nama}</h3>
-                                        <div className="flex items-center justify-between mb-2">
-                                            <p className="text-blue-600">Rp {product.harga.toLocaleString()}</p>
-                                            {quantity > 0 && (
-                                                <div className="flex items-center gap-2">
-                                                    <button
-                                                        onClick={() => updateQuantity(product.id, quantity - 1)}
-                                                        disabled={quantity <= 0}
-                                                        className="w-6 h-6 bg-red-400 rounded-full flex items-center justify-center hover:bg-red-500 disabled:opacity-50 disabled:bg-gray-200"
-                                                    >
-                                                        <FiMinus className="text-white text-sm" />
-                                                    </button>
-                                                    <span className="text-sm font-medium">{quantity}</span>
-                                                    <button
-                                                        onClick={() => updateQuantity(product.id, quantity + 1)}
-                                                        className="w-6 h-6 bg-green-400 rounded-full flex items-center justify-center hover:bg-green-500"
-                                                    >
-                                                        <FiPlus className="text-white text-sm" />
-                                                    </button>
-                                                </div>
-                                            )}
+                                        <div className="relative overflow-hidden rounded-lg mb-3">
+                                            <motion.img
+                                                whileHover={{ scale: 1.08 }}
+                                                transition={{ duration: 0.3 }}
+                                                src={product.gambar_url}
+                                                alt={product.nama}
+                                                className="w-full h-44 object-cover rounded-lg"
+                                            />
+                                            <div className="absolute top-1 right-1">
+                                                <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded-full shadow-sm">
+                                                    Tersedia
+                                                </span>
+                                            </div>
                                         </div>
-                                        <button
-                                            onClick={() => addToCart(product)}
-                                            className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition-colors"
-                                        >
-                                            Tambah ke Keranjang
-                                        </button>
+
+                                        <h3 className="font-semibold text-gray-800 mb-1 truncate text-base">{product.nama}</h3>
+                                        <p className="text-blue-600 font-bold text-lg mb-3">Rp {product.harga.toLocaleString()}</p>
+
+                                        {quantity > 0 ? (
+                                            <div className="flex items-center justify-between mb-1 bg-gray-50 rounded-lg p-1.5">
+                                                <button
+                                                    onClick={() => updateQuantity(product.id, quantity - 1)}
+                                                    disabled={quantity <= 0}
+                                                    className="w-8 h-8 bg-red-400 rounded-full flex items-center justify-center hover:bg-red-500 disabled:opacity-50 disabled:bg-gray-200 transition-colors shadow-sm"
+                                                >
+                                                    <FiMinus className="text-white" />
+                                                </button>
+                                                <span className="text-sm font-medium bg-white px-3 py-1 rounded-full shadow-sm">{quantity}</span>
+                                                <button
+                                                    onClick={() => updateQuantity(product.id, quantity + 1)}
+                                                    className="w-8 h-8 bg-green-400 rounded-full flex items-center justify-center hover:bg-green-500 transition-colors shadow-sm"
+                                                >
+                                                    <FiPlus className="text-white" />
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <button
+                                                onClick={() => addToCart(product)}
+                                                className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-2 rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-300 flex items-center justify-center gap-1 font-medium shadow-sm"
+                                            >
+                                                <FaShoppingCart className="text-sm" /> Tambah
+                                            </button>
+                                        )}
                                     </motion.div>
                                 )
                             })
@@ -461,9 +475,41 @@ const Dashboard = () => {
                     {renderPaginationControls()}
                 </div>
 
-                {/* Komponen Cart */}
-                <Cart cart={cart} updateQuantity={updateQuantity} removeFromCart={removeFromCart} />
+                {/* Cart untuk desktop */}
+                <div className="hidden md:block md:w-1/3">
+                    <Cart cart={cart} updateQuantity={updateQuantity} removeFromCart={removeFromCart} />
+                </div>
             </div>
+
+            {/* Tombol Cart untuk Mobile */}
+            <div className="md:hidden fixed bottom-4 right-4 z-50">
+                <button
+                    onClick={toggleMobileCart}
+                    className="bg-blue-500 text-white p-3 rounded-full shadow-lg flex items-center justify-center"
+                >
+                    <FaShoppingCart className="text-xl" />
+                    {cart.length > 0 && (
+                        <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                            {cart.length}
+                        </span>
+                    )}
+                </button>
+            </div>
+
+            {/* Modal Cart untuk Mobile */}
+            {mobileCartVisible && (
+                <div className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-40 flex items-end justify-center">
+                    <div className="bg-white rounded-t-xl p-4 w-full max-h-[80vh] overflow-y-auto">
+                        <div className="flex justify-between items-center mb-4">
+                            <h2 className="text-lg font-bold">Keranjang Belanja</h2>
+                            <button onClick={toggleMobileCart} className="text-gray-500 p-2">
+                                <FaTimes />
+                            </button>
+                        </div>
+                        <Cart cart={cart} updateQuantity={updateQuantity} removeFromCart={removeFromCart} />
+                    </div>
+                </div>
+            )}
         </div>
     )
 }
