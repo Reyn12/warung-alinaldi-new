@@ -7,7 +7,7 @@ export interface CartItem {
     gambar_url: string
     tanggal_kadaluarsa: string
     created_at: string
-    kode_produk: string
+    kode_produk: string | string[]
     lokasi_brg: string
     quantity: number
 }

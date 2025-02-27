@@ -65,10 +65,10 @@ export default function DashboardLayout({
 
       {/* Main Content */}
       <div className="flex-1 overflow-auto">
-        <div className="p-8 md:p-8 pt-20 md:pt-8">
+        <div className="px-4 py-4 pt-20 md:px-8 md:py-8 md:pt-8">
           {children}
         </div>
       </div>
-    </div>
+    </div> 
   )
 }

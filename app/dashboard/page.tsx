@@ -19,7 +19,7 @@ interface Product {
     tanggal_kadaluarsa: string
     lokasi_brg: string
     created_at: string
-    kode_produk: string
+    kode_produk: string | string[]
     categories?: { nama: string }
 }
 
@@ -80,50 +80,75 @@ const Dashboard = () => {
         let lastKeyTime = Date.now()
 
         const handleBarcodeScan = (event: KeyboardEvent) => {
-            const currentTime = Date.now()
-
+            const currentTime = Date.now();
+        
             // Reset buffer jika terlalu lama antara keypress
             if (currentTime - lastKeyTime > 100) {
-                barcodeBuffer = ''
+                barcodeBuffer = '';
             }
-
+        
             // Update waktu terakhir
-            lastKeyTime = currentTime
-
+            lastKeyTime = currentTime;
+        
             // Tambahkan karakter ke buffer
             if (event.key !== 'Enter') {
-                barcodeBuffer += event.key
-                return
+                barcodeBuffer += event.key;
+                return;
             }
-
+        
             // Proses barcode saat Enter
             if (barcodeBuffer) {
-                console.log('Scanned barcode:', barcodeBuffer)
-                console.log('Tipe data barcode:', typeof barcodeBuffer)
-
-                // Coba cari produk
+                // Normalisasi barcode: hapus spasi, karakter tambahan, dan ubah ke lowercase
+                const scannedCode = barcodeBuffer.trim().replace(/\s/g, '').toLowerCase();
+                console.log('Raw barcode buffer:', barcodeBuffer);
+                console.log('Scanned code (after normalization):', scannedCode);
+                console.log('Tipe data scanned code:', typeof scannedCode);
+        
+                // Log semua produk untuk debugging
+                console.log('All products in database:', products.map(p => ({
+                    nama: p.nama,
+                    kode_produk: p.kode_produk,
+                    type: typeof p.kode_produk
+                })));
+        
+                // Coba cari produk dengan log detail
                 const product = products.find(p => {
-                    console.log('Comparing:', {
-                        scanned: barcodeBuffer.trim(),
-                        database: p.kode_produk,
-                        match: p.kode_produk === barcodeBuffer.trim()
+                    console.log('Checking product:', {
+                        nama: p.nama,
+                        kode_produk: p.kode_produk,
+                        scannedCode: scannedCode
                     });
-                    return p.kode_produk === barcodeBuffer.trim();
+        
+                    // Normalisasi kode_produk untuk konsistensi
+                    if (typeof p.kode_produk === 'string') {
+                        // Jika string, pecah berdasarkan koma dan normalisasi setiap kode
+                        const normalizedCodes = p.kode_produk
+                            .split(',')
+                            .map(code => code.trim().replace(/\s/g, '').toLowerCase());
+                        console.log('Parsed codes from string:', normalizedCodes);
+                        return normalizedCodes.includes(scannedCode);
+                    } else if (Array.isArray(p.kode_produk)) {
+                        const normalizedCodes = p.kode_produk.map(code => code.trim().replace(/\s/g, '').toLowerCase());
+                        console.log('Comparing array codes:', { database: normalizedCodes, scanned: scannedCode });
+                        return normalizedCodes.includes(scannedCode);
+                    }
+                    return false;
                 });
-
+        
                 if (product) {
-                    console.log('Found product:', product)
-                    addToCart(product)
+                    console.log('Found product:', product);
+                    addToCart(product);
                 } else {
-                    toast.error(`Produk dengan kode ${barcodeBuffer} tidak ditemukan`)
-                    console.log('Products in database:', products.map(p => ({
-                        kode: p.kode_produk,
-                        tipe: typeof p.kode_produk
-                    })))
+                    toast.error(`Produk dengan kode ${scannedCode} tidak ditemukan`);
+                    console.log('No matching product found. All product codes checked:', products.map(p => ({
+                        nama: p.nama,
+                        kode_produk: p.kode_produk,
+                        type: typeof p.kode_produk
+                    })));
                 }
-                barcodeBuffer = ''
+                barcodeBuffer = '';
             }
-        }
+        };
 
         // Add event listener
         window.addEventListener('keypress', handleBarcodeScan)
@@ -165,30 +190,45 @@ const Dashboard = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                setIsLoading(true)
+                setIsLoading(true);
                 const [productsResponse, categoriesResponse] = await Promise.all([
                     fetch('/api/dashboard/product'),
                     fetch('/api/dashboard/product?type=categories')
-                ])
-
-                const productsResult = await productsResponse.json()
-                const categoriesResult = await categoriesResponse.json()
-
+                ]);
+    
+                const productsResult = await productsResponse.json();
+                const categoriesResult = await categoriesResponse.json();
+    
                 if (productsResult.status === 'success') {
-                    setProducts(productsResult.data)
+                    setProducts(productsResult.data);
+                    
+                    // Log semua produk untuk debugging
+                    console.log('All products fetched:', productsResult.data);
+    
+                    // Cari dan log produk "Sabun Shinzui" secara spesifik
+                    const shinzuiProduct = productsResult.data.find(
+                        (product: Product) => product.nama === 'Sabun Shinzui'
+                    );
+                    if (shinzuiProduct) {
+                        console.log('Sabun Shinzui product details:', shinzuiProduct);
+                    } else {
+                        console.log('Sabun Shinzui not found in fetched products');
+                    }
                 }
+    
                 if (categoriesResult.status === 'success') {
-                    setCategories(categoriesResult.data)
+                    setCategories(categoriesResult.data);
+                    console.log('Categories fetched:', categoriesResult.data);
                 }
             } catch (err) {
-                console.error('Error fetching data:', err)
+                console.error('Error fetching data:', err);
             } finally {
-                setIsLoading(false)
+                setIsLoading(false);
             }
-        }
-
-        fetchData()
-    }, [])
+        };
+    
+        fetchData();
+    }, []);
 
     // Reset halaman ketika kategori atau search berubah
     useEffect(() => {
@@ -200,10 +240,18 @@ const Dashboard = () => {
     }
 
     const filteredProducts = products.filter(product => {
-        const matchCategory = selectedCategory === 'Semua Produk' || product.categories?.nama === selectedCategory
-        const matchSearch = product.nama.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            product.kode_produk.toString().includes(searchQuery)
-        return matchCategory && matchSearch
+        const matchesSearch = 
+            product.nama.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (typeof product.kode_produk === 'string' && 
+                product.kode_produk.toLowerCase().includes(searchQuery.toLowerCase())) ||
+            (Array.isArray(product.kode_produk) && 
+                product.kode_produk.some(code => code.toLowerCase().includes(searchQuery.toLowerCase())))
+        
+        // Filter kategori juga kalau diperlukan
+        const matchesCategory = selectedCategory === 'Semua Produk' || 
+            (product.categories && product.categories.nama === selectedCategory)
+        
+        return matchesSearch && matchesCategory
     })
 
     // Pagination logic
@@ -482,7 +530,7 @@ const Dashboard = () => {
             </div>
 
             {/* Tombol Cart untuk Mobile */}
-            <div className="md:hidden fixed bottom-4 right-4 z-50">
+            <div className=" fixed bottom-4 right-4 z-100">
                 <button
                     onClick={toggleMobileCart}
                     className="bg-blue-500 text-white p-3 rounded-full shadow-lg flex items-center justify-center"
@@ -517,3 +565,4 @@ const Dashboard = () => {
 export default dynamic(() => Promise.resolve(Dashboard), {
     ssr: false
 })
+
