@@ -12,6 +12,9 @@ const lato = Lato({
 export const metadata: Metadata = {
   title: "Warung Alinaldi",
   description: "Warung Alinaldi - Tempat Belanja Online Terpercaya",
+  icons: {
+    icon: '/logo-toko.ico',
+  }
 };
 
 export default function RootLayout({
