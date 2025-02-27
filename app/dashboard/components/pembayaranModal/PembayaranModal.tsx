@@ -15,6 +15,8 @@ interface PembayaranModalProps {
 const PembayaranModal = ({ isOpen, onClose, onSelectMethod, totalAmount, cart, onProcessOrder }: PembayaranModalProps) => {
     const [step, setStep] = useState<'konfirmasi' | 'pembayaran'>('konfirmasi')
     const [selectedMethod, setSelectedMethod] = useState<'qris' | 'tunai'>('tunai')
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+
 
     const handleConfirm = () => {
         setStep('pembayaran')
@@ -48,8 +50,15 @@ const PembayaranModal = ({ isOpen, onClose, onSelectMethod, totalAmount, cart, o
             if (data.success) {
                 localStorage.removeItem('cart')
                 onProcessOrder() // Panggil fungsi yang dikasih dari parent
-                onClose()       // Tutup modal
-                window.location.reload()
+
+                // Tampilkan modal sukses
+                setShowSuccessModal(true);
+
+                // Tunggu 1.5 detik lalu tutup dan reload
+                setTimeout(() => {
+                    onClose();       // Tutup modal
+                    window.location.reload();
+                }, 1500);
             } else {
                 alert('Gagal memproses pesanan')
             }
@@ -141,8 +150,8 @@ const PembayaranModal = ({ isOpen, onClose, onSelectMethod, totalAmount, cart, o
                                         whileTap={{ scale: 0.95 }}
                                         onClick={() => handleSelectMethod('qris')}
                                         className={`flex flex-col items-center justify-center p-6 border-2 ${selectedMethod === 'qris'
-                                                ? 'border-blue-500 bg-blue-50'
-                                                : 'border-gray-200 hover:border-blue-500 hover:bg-blue-50'
+                                            ? 'border-blue-500 bg-blue-50'
+                                            : 'border-gray-200 hover:border-blue-500 hover:bg-blue-50'
                                             } rounded-xl transition-all`}
                                     >
                                         <FaQrcode className="text-4xl mb-3 text-blue-500" />
@@ -154,8 +163,8 @@ const PembayaranModal = ({ isOpen, onClose, onSelectMethod, totalAmount, cart, o
                                         whileTap={{ scale: 0.95 }}
                                         onClick={() => handleSelectMethod('tunai')}
                                         className={`flex flex-col items-center justify-center p-6 border-2 ${selectedMethod === 'tunai'
-                                                ? 'border-blue-500 bg-blue-50'
-                                                : 'border-gray-200 hover:border-blue-500 hover:bg-blue-50'
+                                            ? 'border-blue-500 bg-blue-50'
+                                            : 'border-gray-200 hover:border-blue-500 hover:bg-blue-50'
                                             } rounded-xl transition-all`}
                                     >
                                         <FaMoneyBillWave className="text-4xl mb-3 text-blue-500" />
@@ -181,6 +190,38 @@ const PembayaranModal = ({ isOpen, onClose, onSelectMethod, totalAmount, cart, o
                         )}
                     </motion.div>
                 </div>
+            )}
+
+            {/* Modal Sukses */}
+            {showSuccessModal && (
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="fixed inset-0 flex items-center justify-center z-[1000] bg-black/50"
+                >
+                    <motion.div
+                        initial={{ scale: 0.8, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        className="bg-gradient-to-br from-blue-800 to-blue-900 rounded-xl p-8 shadow-2xl max-w-sm mx-auto text-center border border-blue-700"
+                    >
+                        <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-5 shadow-lg">
+                            <svg className="w-12 h-12 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                        </div>
+                        <h3 className="text-2xl font-bold mb-3 text-white">Pembayaran Berhasil!</h3>
+                        <p className="text-blue-100 mb-4">Pesanan kamu sedang diproses</p>
+                        <div className="w-full h-1 bg-blue-700 rounded-full overflow-hidden">
+                            <motion.div
+                                initial={{ width: 0 }}
+                                animate={{ width: "100%" }}
+                                transition={{ duration: 2 }}
+                                className="h-full bg-blue-400"
+                            />
+                        </div>
+                    </motion.div>
+                </motion.div>
             )}
         </AnimatePresence>
     )
